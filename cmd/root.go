@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/VeyronSakai/gh-runner-log/internal/domain/repository"
+	debuginfra "github.com/VeyronSakai/gh-runner-log/internal/infrastructure/debug"
 	"github.com/VeyronSakai/gh-runner-log/internal/infrastructure/github"
 	"github.com/VeyronSakai/gh-runner-log/internal/presentation"
 	"github.com/VeyronSakai/gh-runner-log/internal/usecase"
@@ -19,6 +21,7 @@ var (
 	repo       string
 	limit      int
 	format     string
+	debugFile  string
 )
 
 var rootCmd = &cobra.Command{
@@ -46,6 +49,7 @@ func init() {
 	rootCmd.Flags().StringVar(&repo, "repo", "", "Fetch runner logs for a specific repository (owner/repo)")
 	rootCmd.Flags().IntVarP(&limit, "limit", "l", 10, "Maximum number of jobs to display")
 	rootCmd.Flags().StringVarP(&format, "format", "f", "table", "Output format: table or json")
+	rootCmd.Flags().StringVar(&debugFile, "debug", "", "Path to debug JSON file (bypasses GitHub API)")
 
 	// Mark runner flag as required
 	if err := rootCmd.MarkFlagRequired("runner"); err != nil {
@@ -57,48 +61,19 @@ func init() {
 func runCommand(_ *cobra.Command, _ []string) error {
 	ctx := context.Background()
 
-	// Validate format
-	var outputFormat presentation.OutputFormat
-	switch strings.ToLower(format) {
-	case "table":
-		outputFormat = presentation.FormatTable
-	case "json":
-		outputFormat = presentation.FormatJSON
-	default:
-		return fmt.Errorf("invalid format: %s (supported: table, json)", format)
-	}
-
-	// Create infrastructure layer (GitHub client)
-	runnerRepo, err := github.NewRunnerRepository()
+	outputFormat, err := parseOutputFormat(format)
 	if err != nil {
-		return fmt.Errorf("failed to create GitHub client: %w", err)
+		return err
 	}
 
-	jobRepo, err := github.NewJobRepository()
+	jobRepo, runnerRepo, err := resolveRepositories(debugFile)
 	if err != nil {
-		return fmt.Errorf("failed to create GitHub job client: %w", err)
+		return err
 	}
 
-	// Determine owner, repo, and org
-	var owner, repoName, orgName string
-
-	if org != "" {
-		orgName = org
-	} else if repo != "" {
-		parts := strings.Split(repo, "/")
-		if len(parts) != 2 {
-			return fmt.Errorf("invalid repository format. Use owner/repo")
-		}
-		owner = parts[0]
-		repoName = parts[1]
-	} else {
-		// Try to get current repository
-		currentRepo, err := ghrepo.Current()
-		if err != nil {
-			return fmt.Errorf("not in a git repository and no --repo or --org flag specified")
-		}
-		owner = currentRepo.Owner
-		repoName = currentRepo.Name
+	owner, repoName, orgName, err := determineScope(debugFile != "", org, repo)
+	if err != nil {
+		return err
 	}
 
 	// Create use case
@@ -119,4 +94,65 @@ func runCommand(_ *cobra.Command, _ []string) error {
 
 	fmt.Println(output)
 	return nil
+}
+
+func parseOutputFormat(raw string) (presentation.OutputFormat, error) {
+	switch strings.ToLower(raw) {
+	case "table":
+		return presentation.FormatTable, nil
+	case "json":
+		return presentation.FormatJSON, nil
+	default:
+		return "", fmt.Errorf("invalid format: %s (supported: table, json)", raw)
+	}
+}
+
+func resolveRepositories(debugPath string) (repository.JobRepository, repository.RunnerRepository, error) {
+	if debugPath != "" {
+		jobRepo, runnerRepo, err := debuginfra.LoadRepositories(debugPath)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to load debug data: %w", err)
+		}
+		return jobRepo, runnerRepo, nil
+	}
+
+	runnerRepo, err := github.NewRunnerRepository()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create GitHub client: %w", err)
+	}
+
+	jobRepo, err := github.NewJobRepository()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create GitHub job client: %w", err)
+	}
+
+	return jobRepo, runnerRepo, nil
+}
+
+func determineScope(debugEnabled bool, orgFlag, repoFlag string) (string, string, string, error) {
+	var owner, repoName, orgName string
+
+	if orgFlag != "" {
+		orgName = orgFlag
+		return owner, repoName, orgName, nil
+	}
+
+	if repoFlag != "" {
+		parts := strings.Split(repoFlag, "/")
+		if len(parts) != 2 {
+			return "", "", "", fmt.Errorf("invalid repository format. Use owner/repo")
+		}
+		return parts[0], parts[1], "", nil
+	}
+
+	if debugEnabled {
+		return "", "", "", nil
+	}
+
+	currentRepo, err := ghrepo.Current()
+	if err != nil {
+		return "", "", "", fmt.Errorf("failed to detect current repository context. Please specify either --repo owner/repo or --org organization-name")
+	}
+
+	return currentRepo.Owner, currentRepo.Name, "", nil
 }

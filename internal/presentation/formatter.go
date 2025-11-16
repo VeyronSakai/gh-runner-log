@@ -81,12 +81,12 @@ func (f *Formatter) formatTable(history *usecase.RunnerJobHistory) (string, erro
 		if conclusion == "" {
 			conclusion = "-"
 		}
-		
+
 		startedAt := "-"
 		if job.StartedAt != nil {
-			startedAt = job.StartedAt.Format("2006-01-02 15:04:05")
+			startedAt = job.StartedAt.Local().Format("2006-01-02 15:04:05 MST")
 		}
-		
+
 		duration := "-"
 		if job.CompletedAt != nil && job.StartedAt != nil {
 			d := job.GetExecutionDuration()

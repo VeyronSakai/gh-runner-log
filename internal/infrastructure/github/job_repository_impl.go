@@ -32,13 +32,15 @@ func NewJobRepository() (domainrepo.JobRepository, error) {
 // FetchJobHistory retrieves job history for a repository or organization
 func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, org string, limit int) ([]*entity.Job, error) {
 	var allJobs []*entity.Job
-	
+	var skippedRuns int
+	var lastJobErr error
+
 	// Determine per page based on limit
 	perPage := limit
 	if perPage > 100 {
 		perPage = 100
 	}
-	
+
 	// Fetch workflow runs (completed and in_progress)
 	for _, status := range []string{"completed", "in_progress"} {
 		path := j.getWorkflowRunsPath(owner, repo, org, status)
@@ -50,10 +52,12 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 		for _, run := range runs.WorkflowRuns {
 			jobs, err := j.getJobsForRun(run, org, owner, repo)
 			if err != nil {
-				continue // Skip this run if we can't get jobs
+				skippedRuns++
+				lastJobErr = err
+				continue
 			}
 			allJobs = append(allJobs, jobs...)
-			
+
 			// Check if we've reached the limit
 			if len(allJobs) >= limit {
 				if len(allJobs) > limit {
@@ -62,6 +66,10 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 				return allJobs, nil
 			}
 		}
+	}
+
+	if skippedRuns > 0 && lastJobErr != nil {
+		return nil, fmt.Errorf("failed to fetch jobs for %d workflow run(s): %w", skippedRuns, lastJobErr)
 	}
 
 	return allJobs, nil

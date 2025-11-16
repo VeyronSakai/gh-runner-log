@@ -101,17 +101,17 @@ jobs:
           ref: ${{ env.VERSION }}
 
       - name: Update major tag
-        if: ${{ steps.get-semver.outputs.major != 'v0' }}
+        if: ${{ steps.get-semver.outputs.major_tag != '' }}
         env:
-          MAJOR_TAG: ${{ steps.get-semver.outputs.major }}
+          MAJOR_TAG: ${{ steps.get-semver.outputs.major_tag }}
         run: |
           $refspec = "refs/tags/${env:VERSION}:refs/tags/${env:MAJOR_TAG}"
           git push -f origin $refspec
 
       - name: Update minor tag
-        if: ${{ steps.get-semver.outputs.minor != 'v0.0' }}
+        if: ${{ steps.get-semver.outputs.minor_tag != '' }}
         env:
-          MINOR_TAG: ${{ steps.get-semver.outputs.minor }}
+          MINOR_TAG: ${{ steps.get-semver.outputs.minor_tag }}
         run: |
           $refspec = "refs/tags/${env:VERSION}:refs/tags/${env:MINOR_TAG}"
           git push -f origin $refspec
