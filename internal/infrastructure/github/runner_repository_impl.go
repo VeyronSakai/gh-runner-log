@@ -14,10 +14,13 @@ import (
 // RunnerRepositoryImpl implements the RunnerRepository interface using GitHub API
 type RunnerRepositoryImpl struct {
 	restClient *api.RESTClient
+	owner      string
+	repo       string
+	org        string
 }
 
 // NewRunnerRepository creates a new instance of RunnerRepositoryImpl
-func NewRunnerRepository() (domainrepo.RunnerRepository, error) {
+func NewRunnerRepository(owner, repo, org string) (domainrepo.RunnerRepository, error) {
 	restClient, err := api.DefaultRESTClient()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create REST client: %w\nPlease run 'gh auth login' to authenticate with GitHub", err)
@@ -25,13 +28,16 @@ func NewRunnerRepository() (domainrepo.RunnerRepository, error) {
 
 	return &RunnerRepositoryImpl{
 		restClient: restClient,
+		owner:      owner,
+		repo:       repo,
+		org:        org,
 	}, nil
 }
 
 // FetchRunners retrieves all runners for a repository or organization
-func (r *RunnerRepositoryImpl) FetchRunners(ctx context.Context, owner, repo, org string) ([]*entity.Runner, error) {
-	path := r.getRunnersPath(owner, repo, org)
-	
+func (r *RunnerRepositoryImpl) FetchRunners(ctx context.Context) ([]*entity.Runner, error) {
+	path := r.getRunnersPath(r.owner, r.repo, r.org)
+
 	response, err := r.restClient.Request(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch runners: %w", err)
@@ -49,7 +55,7 @@ func (r *RunnerRepositoryImpl) FetchRunners(ctx context.Context, owner, repo, or
 		for _, l := range r.Labels {
 			labels = append(labels, l.Name)
 		}
-		
+
 		runners = append(runners, &entity.Runner{
 			ID:     r.ID,
 			Name:   r.Name,
@@ -63,8 +69,8 @@ func (r *RunnerRepositoryImpl) FetchRunners(ctx context.Context, owner, repo, or
 }
 
 // FetchRunnerByName retrieves a specific runner by name
-func (r *RunnerRepositoryImpl) FetchRunnerByName(ctx context.Context, owner, repo, org, name string) (*entity.Runner, error) {
-	runners, err := r.FetchRunners(ctx, owner, repo, org)
+func (r *RunnerRepositoryImpl) FetchRunnerByName(ctx context.Context, name string) (*entity.Runner, error) {
+	runners, err := r.FetchRunners(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -15,10 +15,13 @@ import (
 // JobRepositoryImpl implements the JobRepository interface using GitHub API
 type JobRepositoryImpl struct {
 	restClient *api.RESTClient
+	owner      string
+	repo       string
+	org        string
 }
 
 // NewJobRepository creates a new instance of JobRepositoryImpl
-func NewJobRepository() (domainrepo.JobRepository, error) {
+func NewJobRepository(owner, repo, org string) (domainrepo.JobRepository, error) {
 	restClient, err := api.DefaultRESTClient()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create REST client: %w\nPlease run 'gh auth login' to authenticate with GitHub", err)
@@ -26,14 +29,17 @@ func NewJobRepository() (domainrepo.JobRepository, error) {
 
 	return &JobRepositoryImpl{
 		restClient: restClient,
+		owner:      owner,
+		repo:       repo,
+		org:        org,
 	}, nil
 }
 
 // FetchJobHistory retrieves job history for a repository or organization
-func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, org string, limit int) ([]*entity.Job, error) {
+func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, limit int) ([]*entity.Job, error) {
 	// Fetch workflow runs without status filter to get all statuses
 	// Use default per_page (30) from GitHub API
-	path := j.getWorkflowRunsPath(owner, repo, org)
+	path := j.getWorkflowRunsPath(j.owner, j.repo, j.org)
 	runs, err := j.fetchWorkflowRuns(path, 30)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch workflow runs: %w", err)
@@ -49,7 +55,7 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 
 	for _, run := range runs.WorkflowRuns {
 		go func(r workflowRun) {
-			jobs, err := j.getJobsForRun(r, org, owner, repo)
+			jobs, err := j.getJobsForRun(r, j.org, j.owner, j.repo)
 			results <- result{jobs: jobs, err: err}
 		}(run)
 	}

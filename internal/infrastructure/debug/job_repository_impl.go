@@ -12,21 +12,29 @@ var _ domainrepo.JobRepository = (*JobRepositoryImpl)(nil)
 
 // JobRepositoryImpl serves job data from the loaded dataset.
 type JobRepositoryImpl struct {
-	ds *dataset
+	ds    *dataset
+	owner string
+	repo  string
+	org   string
 }
 
-func NewJobRepository(ds *dataset) domainrepo.JobRepository {
-	return &JobRepositoryImpl{ds: ds}
+func NewJobRepository(ds *dataset, owner, repo, org string) domainrepo.JobRepository {
+	return &JobRepositoryImpl{
+		ds:    ds,
+		owner: owner,
+		repo:  repo,
+		org:   org,
+	}
 }
 
-func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, owner, repo, org string, limit int) ([]*entity.Job, error) {
+func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, limit int) ([]*entity.Job, error) {
 	if limit <= 0 {
 		return []*entity.Job{}, nil
 	}
 
 	filtered := make([]*entity.Job, 0, len(j.ds.jobs))
 	for _, job := range j.ds.jobs {
-		if matchScope(job.Repository, owner, repo, org) {
+		if j.matchScope(job.Repository) {
 			filtered = append(filtered, job)
 		}
 		if len(filtered) >= limit {
@@ -42,12 +50,12 @@ func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, owner, repo, org 
 }
 
 // matchScope verifies that the repository string should be included for the given owner/repo/org filters.
-func matchScope(repository, owner, repo, org string) bool {
-	if org != "" {
-		return strings.HasPrefix(repository, org+"/")
+func (j *JobRepositoryImpl) matchScope(repository string) bool {
+	if j.org != "" {
+		return strings.HasPrefix(repository, j.org+"/")
 	}
-	if owner == "" || repo == "" {
+	if j.owner == "" || j.repo == "" {
 		return true
 	}
-	return repository == owner+"/"+repo
+	return repository == j.owner+"/"+j.repo
 }

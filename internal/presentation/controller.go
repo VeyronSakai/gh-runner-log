@@ -23,9 +23,9 @@ func NewController(runnerLogger *usecase.RunnerLogger) *Controller {
 }
 
 // Run fetches runner job history and displays the interactive UI
-func (c *Controller) Run(ctx context.Context, owner, repo, org, runnerName string, limit int) error {
+func (c *Controller) Run(ctx context.Context, runnerName string, limit int) error {
 	// Fetch runner job history
-	history, err := c.runnerLogger.FetchRunnerJobHistory(ctx, owner, repo, org, runnerName, limit)
+	history, err := c.runnerLogger.FetchRunnerJobHistory(ctx, runnerName, limit)
 	if err != nil {
 		return fmt.Errorf("failed to fetch runner job history: %w", err)
 	}

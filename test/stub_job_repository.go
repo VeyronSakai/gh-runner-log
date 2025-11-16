@@ -15,6 +15,6 @@ type StubJobRepository struct {
 
 var _ repository.JobRepository = (*StubJobRepository)(nil)
 
-func (s *StubJobRepository) FetchJobHistory(context.Context, string, string, string, int) ([]*entity.Job, error) {
+func (s *StubJobRepository) FetchJobHistory(context.Context, int) ([]*entity.Job, error) {
 	return s.Jobs, s.Err
 }

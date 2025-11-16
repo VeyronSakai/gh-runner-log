@@ -53,12 +53,12 @@ func runCommand(_ *cobra.Command, args []string) error {
 	ctx := context.Background()
 	runnerName := args[0]
 
-	jobRepo, runnerRepo, err := resolveRepositories(debugFile)
+	owner, repoName, orgName, err := determineScope(debugFile != "", org, repo)
 	if err != nil {
 		return err
 	}
 
-	owner, repoName, orgName, err := determineScope(debugFile != "", org, repo)
+	jobRepo, runnerRepo, err := resolveRepositories(debugFile, owner, repoName, orgName)
 	if err != nil {
 		return err
 	}
@@ -68,24 +68,24 @@ func runCommand(_ *cobra.Command, args []string) error {
 
 	// Create and run controller
 	controller := presentation.NewController(runnerLogger)
-	return controller.Run(ctx, owner, repoName, orgName, runnerName, limit)
+	return controller.Run(ctx, runnerName, limit)
 }
 
-func resolveRepositories(debugPath string) (repository.JobRepository, repository.RunnerRepository, error) {
+func resolveRepositories(debugPath, owner, repo, org string) (repository.JobRepository, repository.RunnerRepository, error) {
 	if debugPath != "" {
-		jobRepo, runnerRepo, err := debuginfra.LoadRepositories(debugPath)
+		jobRepo, runnerRepo, err := debuginfra.LoadRepositories(debugPath, owner, repo, org)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to load debug data: %w", err)
 		}
 		return jobRepo, runnerRepo, nil
 	}
 
-	runnerRepo, err := github.NewRunnerRepository()
+	runnerRepo, err := github.NewRunnerRepository(owner, repo, org)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create GitHub client: %w", err)
 	}
 
-	jobRepo, err := github.NewJobRepository()
+	jobRepo, err := github.NewJobRepository(owner, repo, org)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create GitHub job client: %w", err)
 	}

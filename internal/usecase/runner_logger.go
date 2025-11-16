@@ -35,9 +35,9 @@ type RunnerJobHistory struct {
 }
 
 // FetchRunnerJobHistory fetches job history for a specific runner
-func (r *RunnerLogger) FetchRunnerJobHistory(ctx context.Context, owner, repo, org, runnerName string, limit int) (*RunnerJobHistory, error) {
+func (r *RunnerLogger) FetchRunnerJobHistory(ctx context.Context, runnerName string, limit int) (*RunnerJobHistory, error) {
 	// First, fetch the runner to get its ID
-	runner, err := r.runnerRepo.FetchRunnerByName(ctx, owner, repo, org, runnerName)
+	runner, err := r.runnerRepo.FetchRunnerByName(ctx, runnerName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch runner: %w", err)
 	}
@@ -50,7 +50,7 @@ func (r *RunnerLogger) FetchRunnerJobHistory(ctx context.Context, owner, repo, o
 		fetchLimit = maxFetchLimit
 	}
 
-	allJobs, err := r.jobRepo.FetchJobHistory(ctx, owner, repo, org, fetchLimit)
+	allJobs, err := r.jobRepo.FetchJobHistory(ctx, fetchLimit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch job history: %w", err)
 	}

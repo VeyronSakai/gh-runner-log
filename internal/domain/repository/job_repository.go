@@ -10,5 +10,5 @@ import (
 type JobRepository interface {
 	// FetchJobHistory retrieves job history for a repository or organization
 	// Returns all jobs that have been completed or are in progress
-	FetchJobHistory(ctx context.Context, owner, repo, org string, limit int) ([]*entity.Job, error)
+	FetchJobHistory(ctx context.Context, limit int) ([]*entity.Job, error)
 }

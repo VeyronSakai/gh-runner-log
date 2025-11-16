@@ -11,12 +11,12 @@ import (
 )
 
 // LoadRepositories loads job and runner repositories from a debug file.
-func LoadRepositories(path string) (domainrepo.JobRepository, domainrepo.RunnerRepository, error) {
+func LoadRepositories(path, owner, repo, org string) (domainrepo.JobRepository, domainrepo.RunnerRepository, error) {
 	ds, err := loadDataset(path)
 	if err != nil {
 		return nil, nil, err
 	}
-	return NewJobRepository(ds), NewRunnerRepository(ds), nil
+	return NewJobRepository(ds, owner, repo, org), NewRunnerRepository(ds, owner, repo, org), nil
 }
 
 // dataFile mirrors the JSON schema used by the --debug flag.

@@ -34,7 +34,7 @@ type repoInfo struct {
 
 // jobsResponse represents the response from GitHub API for jobs
 type jobsResponse struct {
-	TotalCount int  `json:"total_count"`
+	TotalCount int   `json:"total_count"`
 	Jobs       []job `json:"jobs"`
 }
 
@@ -60,11 +60,11 @@ type runnersResponse struct {
 
 // runner represents a single runner
 type runner struct {
-	ID     int64    `json:"id"`
-	Name   string   `json:"name"`
-	OS     string   `json:"os"`
-	Status string   `json:"status"`
-	Labels []label  `json:"labels"`
+	ID     int64   `json:"id"`
+	Name   string  `json:"name"`
+	OS     string  `json:"os"`
+	Status string  `json:"status"`
+	Labels []label `json:"labels"`
 }
 
 // label represents a runner label
