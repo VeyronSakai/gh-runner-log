@@ -144,23 +144,28 @@ func (j *JobRepositoryImpl) fetchWorkflowRuns(path string, perPage, page int) (*
 }
 
 // getJobsForRun fetches all jobs for a specific workflow run
-// Note: Jobs API always requires the specific repository path, even when querying org-scoped runs.
-// The run object contains the repository information, which we use to construct the path.
 func (j *JobRepositoryImpl) getJobsForRun(run workflowRun) ([]*entity.Job, error) {
-	// Extract owner and repo from the run's repository information
-	if run.Repository.FullName == "" {
-		return nil, fmt.Errorf("workflow run %d has no repository information", run.ID)
+	var path string
+	
+	// For org-scoped queries, basePath is "orgs/{org}/actions"
+	// but jobs API requires "repos/{owner}/{repo}/actions/runs/{id}/jobs"
+	// For repo-scoped queries, we can use basePath directly
+	if strings.HasPrefix(j.basePath, "orgs/") {
+		// Extract owner and repo from the run's repository information
+		if run.Repository.FullName == "" {
+			return nil, fmt.Errorf("workflow run %d has no repository information", run.ID)
+		}
+
+		parts := strings.Split(run.Repository.FullName, "/")
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid repository full name format: %s", run.Repository.FullName)
+		}
+
+		path = fmt.Sprintf("%s/runs/%d/jobs", getRepoActionsBasePath(parts[0], parts[1]), run.ID)
+	} else {
+		// Repository scope: use basePath directly
+		path = fmt.Sprintf("%s/runs/%d/jobs", j.basePath, run.ID)
 	}
-
-	parts := strings.Split(run.Repository.FullName, "/")
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("invalid repository full name format: %s", run.Repository.FullName)
-	}
-
-	runOwner := parts[0]
-	runRepo := parts[1]
-
-	path := fmt.Sprintf("%s/runs/%d/jobs", getRepoActionsBasePath(runOwner, runRepo), run.ID)
 	response, err := j.restClient.Request(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch jobs for run %d: %w", run.ID, err)
