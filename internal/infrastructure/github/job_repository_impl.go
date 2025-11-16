@@ -95,20 +95,15 @@ func (j *JobRepositoryImpl) getWorkflowRunsPath(owner, repo, org string) string 
 	return fmt.Sprintf("repos/%s/%s/actions/runs", owner, repo)
 }
 
-// fetchWorkflowRuns fetches workflow runs from GitHub API (page 1 only, for backward compatibility)
+// fetchWorkflowRuns fetches workflow runs from GitHub API
 func (j *JobRepositoryImpl) fetchWorkflowRuns(path string, perPage int) (*workflowRunsResponse, error) {
-	return j.fetchWorkflowRunsWithPagination(path, perPage, 1)
-}
-
-// fetchWorkflowRunsWithPagination fetches workflow runs from GitHub API with pagination support
-func (j *JobRepositoryImpl) fetchWorkflowRunsWithPagination(path string, perPage, page int) (*workflowRunsResponse, error) {
 	// Determine the separator for query parameters
 	separator := "?"
 	if strings.Contains(path, "?") {
 		separator = "&"
 	}
 
-	currentPath := fmt.Sprintf("%s%sper_page=%d&page=%d", path, separator, perPage, page)
+	currentPath := fmt.Sprintf("%s%sper_page=%d&page=1", path, separator, perPage)
 	response, err := j.restClient.Request(http.MethodGet, currentPath, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to request workflow runs: %w", err)
