@@ -1,6 +1,7 @@
 package presentation
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os/exec"
@@ -136,17 +137,29 @@ func (m model) View() string {
 	return header + m.list.View()
 }
 
-type InteractiveUI struct {
-	history *usecase.RunnerJobHistory
+// TUI represents the terminal UI for displaying runner job history
+type TUI struct {
+	runnerLogUsecase *usecase.RunnerLog
 }
 
-func NewInteractiveUI(history *usecase.RunnerJobHistory) *InteractiveUI {
-	return &InteractiveUI{history: history}
+// NewTUI creates a new TUI with the given usecase
+func NewTUI(runnerLogUsecase *usecase.RunnerLog) *TUI {
+	return &TUI{
+		runnerLogUsecase: runnerLogUsecase,
+	}
 }
 
-func (ui *InteractiveUI) Run() error {
-	items := make([]list.Item, len(ui.history.Jobs))
-	for i, job := range ui.history.Jobs {
+// Run fetches runner job history and displays the interactive UI
+func (t *TUI) Run(ctx context.Context, owner, repo, org, runnerName string, limit int) error {
+	// Fetch runner job history
+	history, err := t.runnerLogUsecase.FetchRunnerJobHistory(ctx, owner, repo, org, runnerName, limit)
+	if err != nil {
+		return fmt.Errorf("failed to fetch runner job history: %w", err)
+	}
+
+	// Display interactive UI
+	items := make([]list.Item, len(history.Jobs))
+	for i, job := range history.Jobs {
 		items[i] = jobItem{job: job}
 	}
 
@@ -154,14 +167,14 @@ func (ui *InteractiveUI) Run() error {
 	const listHeight = 20
 
 	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
-	l.Title = fmt.Sprintf("Job History (%d jobs)", len(ui.history.Jobs))
+	l.Title = fmt.Sprintf("Job History (%d jobs)", len(history.Jobs))
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.Styles.Title = titleStyle
 	l.Styles.PaginationStyle = paginationStyle
 	l.Styles.HelpStyle = helpStyle
 
-	m := model{list: l, history: ui.history}
+	m := model{list: l, history: history}
 
 	p := tea.NewProgram(m)
 	finalModel, err := p.Run()
@@ -194,4 +207,27 @@ func openBrowser(url string) error {
 
 	args = append(args, url)
 	return exec.Command(cmd, args...).Start()
+}
+
+// truncate truncates a string to the specified length
+func truncate(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen-3] + "..."
+}
+
+// formatDuration formats a duration in a human-readable format
+func formatDuration(d time.Duration) string {
+	if d < time.Minute {
+		return fmt.Sprintf("%ds", int(d.Seconds()))
+	}
+	if d < time.Hour {
+		minutes := int(d.Minutes())
+		seconds := int(d.Seconds()) % 60
+		return fmt.Sprintf("%dm %ds", minutes, seconds)
+	}
+	hours := int(d.Hours())
+	minutes := int(d.Minutes()) % 60
+	return fmt.Sprintf("%dh %dm", hours, minutes)
 }

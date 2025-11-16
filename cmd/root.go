@@ -45,7 +45,7 @@ func Execute() {
 func init() {
 	rootCmd.Flags().StringVar(&org, "org", "", "Fetch runner logs for an organization")
 	rootCmd.Flags().StringVar(&repo, "repo", "", "Fetch runner logs for a specific repository (owner/repo)")
-	rootCmd.Flags().IntVarP(&limit, "limit", "l", 10, "Maximum number of jobs to display")
+	rootCmd.Flags().IntVarP(&limit, "limit", "l", 10, "Maximum number of history to display")
 	rootCmd.Flags().StringVar(&debugFile, "debug", "", "Path to debug JSON file (bypasses GitHub API)")
 }
 
@@ -66,15 +66,9 @@ func runCommand(_ *cobra.Command, args []string) error {
 	// Create use case
 	runnerLog := usecase.NewRunnerLog(jobRepo, runnerRepo)
 
-	// Fetch runner job history
-	history, err := runnerLog.FetchRunnerJobHistory(ctx, owner, repoName, orgName, runnerName, limit)
-	if err != nil {
-		return fmt.Errorf("failed to fetch runner job history: %w", err)
-	}
-
-	// Display interactive UI
-	ui := presentation.NewInteractiveUI(history)
-	return ui.Run()
+	// Create and run TUI
+	tui := presentation.NewTUI(runnerLog)
+	return tui.Run(ctx, owner, repoName, orgName, runnerName, limit)
 }
 
 func resolveRepositories(debugPath string) (repository.JobRepository, repository.RunnerRepository, error) {
