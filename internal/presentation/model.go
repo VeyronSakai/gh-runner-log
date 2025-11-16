@@ -2,6 +2,8 @@ package presentation
 
 import (
 	"context"
+	"os/exec"
+	"runtime"
 
 	"github.com/VeyronSakai/gh-runner-log/internal/domain/entity"
 	"github.com/VeyronSakai/gh-runner-log/internal/usecase"
@@ -113,7 +115,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		
 		// Build table now that we have data
 		columns := []table.Column{
-			{Title: "ID", Width: 10},
+			{Title: "Job Name", Width: 25},
 			{Title: "Workflow", Width: 20},
 			{Title: "Status", Width: 12},
 			{Title: "Conclusion", Width: 12},
@@ -155,8 +157,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				selectedIdx := m.table.Cursor()
 				if selectedIdx >= 0 && selectedIdx < len(m.history.Jobs) {
 					m.choice = m.history.Jobs[selectedIdx]
-					m.quitting = true
-					return m, tea.Quit
+					// Open browser but don't quit
+					go openBrowserAsync(m.choice.HtmlUrl)
 				}
 			}
 		}
@@ -173,6 +175,27 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // GetChoice returns the selected job, if any
 func (m *Model) GetChoice() *entity.Job {
 	return m.choice
+}
+
+// openBrowserAsync opens a URL in the browser asynchronously
+func openBrowserAsync(url string) {
+	var cmd string
+	var args []string
+
+	switch runtime.GOOS {
+	case "linux":
+		cmd = "xdg-open"
+	case "darwin":
+		cmd = "open"
+	case "windows":
+		cmd = "rundll32"
+		args = []string{"url.dll,FileProtocolHandler"}
+	default:
+		return
+	}
+
+	args = append(args, url)
+	exec.Command(cmd, args...).Start()
 }
 
 

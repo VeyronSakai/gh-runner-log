@@ -3,8 +3,6 @@ package presentation
 import (
 	"context"
 	"fmt"
-	"os/exec"
-	"runtime"
 
 	"github.com/VeyronSakai/gh-runner-log/internal/usecase"
 	tea "github.com/charmbracelet/bubbletea"
@@ -29,16 +27,9 @@ func (c *Controller) Run(ctx context.Context, runnerName string, limit int) erro
 
 	// Run TUI
 	p := tea.NewProgram(m)
-	finalModel, err := p.Run()
+	_, err := p.Run()
 	if err != nil {
 		return fmt.Errorf("error running interactive UI: %w", err)
-	}
-
-	// Handle selection
-	if finalModel, ok := finalModel.(*Model); ok {
-		if choice := finalModel.GetChoice(); choice != nil {
-			return openBrowser(choice.HtmlUrl)
-		}
 	}
 
 	return nil
@@ -51,24 +42,4 @@ func newLoadingModel(runnerLogger *usecase.RunnerLogger, runnerName string, limi
 	m.runnerName = runnerName
 	m.limit = limit
 	return m
-}
-
-func openBrowser(url string) error {
-	var cmd string
-	var args []string
-
-	switch runtime.GOOS {
-	case "linux":
-		cmd = "xdg-open"
-	case "darwin":
-		cmd = "open"
-	case "windows":
-		cmd = "rundll32"
-		args = []string{"url.dll,FileProtocolHandler"}
-	default:
-		return fmt.Errorf("unsupported platform")
-	}
-
-	args = append(args, url)
-	return exec.Command(cmd, args...).Start()
 }

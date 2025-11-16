@@ -29,7 +29,7 @@ func (m *Model) View() string {
 
 // renderHeader renders the runner information header
 func renderHeader(history *usecase.RunnerJobHistory) string {
-	return fmt.Sprintf("Runner: %s\nStatus: %s | OS: %s | Labels: %s\n\n",
+	return fmt.Sprintf("Runner: %s\nStatus: %s\nOS: %s\nLabels: %s\n",
 		history.Runner.Name,
 		history.Runner.Status,
 		history.Runner.OS,
@@ -61,7 +61,7 @@ func buildRows(jobs []*entity.Job) []table.Row {
 		}
 
 		rows[i] = table.Row{
-			fmt.Sprintf("%d", job.ID),
+			truncate(job.Name, 25),
 			truncate(job.WorkflowName, 20),
 			job.Status,
 			conclusion,
