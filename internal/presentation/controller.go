@@ -41,7 +41,7 @@ func (c *Controller) Run(ctx context.Context, owner, repo, org, runnerName strin
 	}
 
 	// Handle selection
-	if finalModel, ok := finalModel.(Model); ok {
+	if finalModel, ok := finalModel.(*Model); ok {
 		if choice := finalModel.GetChoice(); choice != nil {
 			return openBrowser(choice.HtmlUrl)
 		}

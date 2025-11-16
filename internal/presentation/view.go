@@ -22,7 +22,7 @@ var (
 )
 
 // View renders the model
-func (m Model) View() string {
+func (m *Model) View() string {
 	if m.quitting {
 		return quitTextStyle.Render("")
 	}

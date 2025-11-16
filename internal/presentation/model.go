@@ -39,11 +39,11 @@ func NewModel(history *usecase.RunnerJobHistory) *Model {
 	}
 }
 
-func (m Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.list.SetWidth(msg.Width)
@@ -71,7 +71,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // GetChoice returns the selected job, if any
-func (m Model) GetChoice() *entity.Job {
+func (m *Model) GetChoice() *entity.Job {
 	return m.choice
 }
 
