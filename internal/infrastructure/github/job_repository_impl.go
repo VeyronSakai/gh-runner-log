@@ -36,7 +36,8 @@ func NewJobRepository(owner, repo, org string) (domainrepo.JobRepository, error)
 }
 
 // FetchJobHistory retrieves job history for a repository or organization
-func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, limit int) ([]*entity.Job, error) {
+// If runnerID is provided (> 0), only jobs assigned to that runner are returned
+func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64, limit int) ([]*entity.Job, error) {
 	var allJobs []*entity.Job
 	var skippedRuns int
 	var lastJobErr error
@@ -72,7 +73,7 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, limit int) ([]*
 			}(run)
 		}
 
-		// Collect results
+		// Collect results and filter by runner ID if specified
 		for i := 0; i < len(runs.WorkflowRuns); i++ {
 			res := <-results
 			if res.err != nil {
@@ -80,7 +81,17 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, limit int) ([]*
 				lastJobErr = res.err
 				continue
 			}
-			allJobs = append(allJobs, res.jobs...)
+
+			// Filter by runner ID if specified
+			if runnerID > 0 {
+				for _, job := range res.jobs {
+					if job.IsAssignedToRunner(runnerID) {
+						allJobs = append(allJobs, job)
+					}
+				}
+			} else {
+				allJobs = append(allJobs, res.jobs...)
+			}
 		}
 
 		// If we have enough jobs, stop fetching

@@ -37,39 +37,26 @@ func (r *RunnerLogger) FetchRunnerJobHistory(ctx context.Context, runnerName str
 		return nil, fmt.Errorf("failed to fetch runner: %w", err)
 	}
 
-	// Fetch job history
-	// Note: FetchJobHistory returns jobs for all runners, then we filter by runner ID
-	// The repository will paginate through workflow runs until it gets enough total jobs
-	// TODO: Consider passing runner ID to repository for more efficient filtering
-	allJobs, err := r.jobRepo.FetchJobHistory(ctx, limit)
+	// Fetch job history filtered by runner ID
+	// The repository will paginate and filter until it gets enough jobs for this runner
+	jobs, err := r.jobRepo.FetchJobHistory(ctx, runner.ID, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch job history: %w", err)
 	}
 
-	// Filter jobs by runner ID
-	runnerJobs := make([]*entity.Job, 0)
-	for _, job := range allJobs {
-		if job.IsAssignedToRunner(runner.ID) {
-			runnerJobs = append(runnerJobs, job)
-			if len(runnerJobs) >= limit {
-				break
-			}
-		}
-	}
-
 	// Sort jobs by start time (most recent first)
-	sort.Slice(runnerJobs, func(i, j int) bool {
-		if runnerJobs[i].StartedAt == nil {
+	sort.Slice(jobs, func(i, j int) bool {
+		if jobs[i].StartedAt == nil {
 			return false
 		}
-		if runnerJobs[j].StartedAt == nil {
+		if jobs[j].StartedAt == nil {
 			return true
 		}
-		return runnerJobs[i].StartedAt.After(*runnerJobs[j].StartedAt)
+		return jobs[i].StartedAt.After(*jobs[j].StartedAt)
 	})
 
 	return &RunnerJobHistory{
 		Runner: runner,
-		Jobs:   runnerJobs,
+		Jobs:   jobs,
 	}, nil
 }

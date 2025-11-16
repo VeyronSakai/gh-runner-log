@@ -27,16 +27,23 @@ func NewJobRepository(ds *dataset, owner, repo, org string) domainrepo.JobReposi
 	}
 }
 
-func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, limit int) ([]*entity.Job, error) {
+func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, runnerID int64, limit int) ([]*entity.Job, error) {
 	if limit <= 0 {
 		return []*entity.Job{}, nil
 	}
 
 	filtered := make([]*entity.Job, 0, len(j.ds.jobs))
 	for _, job := range j.ds.jobs {
-		if j.matchScope(job.Repository) {
-			filtered = append(filtered, job)
+		if !j.matchScope(job.Repository) {
+			continue
 		}
+
+		// Filter by runner ID if specified
+		if runnerID > 0 && !job.IsAssignedToRunner(runnerID) {
+			continue
+		}
+
+		filtered = append(filtered, job)
 		if len(filtered) >= limit {
 			break
 		}
