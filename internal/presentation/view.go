@@ -2,33 +2,29 @@ package presentation
 
 import (
 	"fmt"
-	"io"
 	"strings"
 	"time"
 
+	"github.com/VeyronSakai/gh-runner-log/internal/domain/entity"
 	"github.com/VeyronSakai/gh-runner-log/internal/usecase"
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/lipgloss"
 )
 
 var (
-	titleStyle        = lipgloss.NewStyle().MarginLeft(2)
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
-	paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
-	helpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
-	quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
+	baseStyle = lipgloss.NewStyle().
+			BorderStyle(lipgloss.NormalBorder()).
+			BorderForeground(lipgloss.Color("240"))
 )
 
 // View renders the model
 func (m *Model) View() string {
 	if m.quitting {
-		return quitTextStyle.Render("")
+		return ""
 	}
 
 	header := renderHeader(m.history)
-	return header + m.list.View()
+	return header + "\n" + baseStyle.Render(m.table.View()) + "\n"
 }
 
 // renderHeader renders the runner information header
@@ -41,55 +37,39 @@ func renderHeader(history *usecase.RunnerJobHistory) string {
 	)
 }
 
-// itemDelegate handles rendering of individual job items
-type itemDelegate struct{}
+// buildRows converts jobs to table rows
+func buildRows(jobs []*entity.Job) []table.Row {
+	rows := make([]table.Row, len(jobs))
+	for i, job := range jobs {
+		startedAt := "-"
+		if job.StartedAt != nil {
+			startedAt = job.StartedAt.Local().Format("2006-01-02 15:04:05 MST")
+		}
 
-func (d itemDelegate) Height() int                             { return 1 }
-func (d itemDelegate) Spacing() int                            { return 0 }
-func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
-func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(jobItem)
-	if !ok {
-		return
-	}
+		duration := "-"
+		if job.CompletedAt != nil && job.StartedAt != nil {
+			d := job.GetExecutionDuration()
+			duration = formatDuration(d)
+		} else if job.StartedAt != nil && job.Status == "in_progress" {
+			d := time.Since(*job.StartedAt)
+			duration = formatDuration(d) + " (running)"
+		}
 
-	job := i.job
-	startedAt := "-"
-	if job.StartedAt != nil {
-		startedAt = job.StartedAt.Local().Format("2006-01-02 15:04:05 MST")
-	}
+		conclusion := job.Conclusion
+		if conclusion == "" {
+			conclusion = "-"
+		}
 
-	duration := "-"
-	if job.CompletedAt != nil && job.StartedAt != nil {
-		d := job.GetExecutionDuration()
-		duration = formatDuration(d)
-	} else if job.StartedAt != nil && job.Status == "in_progress" {
-		d := time.Since(*job.StartedAt)
-		duration = formatDuration(d) + " (running)"
-	}
-
-	conclusion := job.Conclusion
-	if conclusion == "" {
-		conclusion = "-"
-	}
-
-	str := fmt.Sprintf("%d | %s | %s | %s | %s | %s",
-		job.ID,
-		truncate(job.WorkflowName, 20),
-		job.Status,
-		conclusion,
-		startedAt,
-		duration,
-	)
-
-	fn := itemStyle.Render
-	if index == m.Index() {
-		fn = func(s ...string) string {
-			return selectedItemStyle.Render("→ " + strings.Join(s, " "))
+		rows[i] = table.Row{
+			fmt.Sprintf("%d", job.ID),
+			truncate(job.WorkflowName, 20),
+			job.Status,
+			conclusion,
+			startedAt,
+			duration,
 		}
 	}
-
-	fmt.Fprint(w, fn(str))
+	return rows
 }
 
 // truncate truncates a string to the specified length

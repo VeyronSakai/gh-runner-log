@@ -1,40 +1,53 @@
 package presentation
 
 import (
-	"github.com/VeyronSakai/gh-runner-log/internal/domain/entity"
 	"github.com/VeyronSakai/gh-runner-log/internal/usecase"
-	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // Model represents the application state for the TUI
 type Model struct {
-	list     list.Model
+	table    table.Model
 	history  *usecase.RunnerJobHistory
-	choice   *entity.Job
 	quitting bool
 }
 
 // NewModel creates a new Model with the given history
 func NewModel(history *usecase.RunnerJobHistory) *Model {
-	items := make([]list.Item, len(history.Jobs))
-	for i, job := range history.Jobs {
-		items[i] = jobItem{job: job}
+	columns := []table.Column{
+		{Title: "ID", Width: 10},
+		{Title: "Workflow", Width: 20},
+		{Title: "Status", Width: 12},
+		{Title: "Conclusion", Width: 12},
+		{Title: "Started At", Width: 25},
+		{Title: "Duration", Width: 15},
 	}
 
-	const defaultWidth = 120
-	const listHeight = 20
+	rows := buildRows(history.Jobs)
 
-	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
-	l.Title = "Job History"
-	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(false)
-	l.Styles.Title = titleStyle
-	l.Styles.PaginationStyle = paginationStyle
-	l.Styles.HelpStyle = helpStyle
+	t := table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithFocused(true),
+		table.WithHeight(20),
+	)
+
+	s := table.DefaultStyles()
+	s.Header = s.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(false)
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		Bold(false)
+	t.SetStyles(s)
 
 	return &Model{
-		list:    l,
+		table:   t,
 		history: history,
 	}
 }
@@ -44,42 +57,17 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.list.SetWidth(msg.Width)
-		return m, nil
-
 	case tea.KeyMsg:
-		switch keypress := msg.String(); keypress {
-		case "ctrl+c", "q":
+		switch msg.String() {
+		case "q", "ctrl+c":
 			m.quitting = true
 			return m, tea.Quit
-
-		case "enter":
-			i, ok := m.list.SelectedItem().(jobItem)
-			if ok {
-				m.choice = i.job
-				m.quitting = true
-				return m, tea.Quit
-			}
 		}
 	}
-
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
+	m.table, cmd = m.table.Update(msg)
 	return m, cmd
 }
 
-// GetChoice returns the selected job, if any
-func (m *Model) GetChoice() *entity.Job {
-	return m.choice
-}
 
-// jobItem represents a job in the list
-type jobItem struct {
-	job *entity.Job
-}
-
-func (i jobItem) FilterValue() string {
-	return i.job.Name
-}
