@@ -15,9 +15,9 @@ import (
 // JobRepositoryImpl implements the JobRepository interface using GitHub API
 type JobRepositoryImpl struct {
 	restClient *api.RESTClient
+	basePath   string
 	owner      string
 	repo       string
-	org        string
 }
 
 // NewJobRepository creates a new instance of JobRepositoryImpl
@@ -29,9 +29,9 @@ func NewJobRepository(owner, repo, org string) (domainrepo.JobRepository, error)
 
 	return &JobRepositoryImpl{
 		restClient: restClient,
+		basePath:   getActionsBasePath(owner, repo, org),
 		owner:      owner,
 		repo:       repo,
-		org:        org,
 	}, nil
 }
 
@@ -42,7 +42,7 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64,
 	var skippedRuns int
 	var lastJobErr error
 
-	path := j.getWorkflowRunsPath(j.owner, j.repo, j.org)
+	path := j.getWorkflowRunsPath()
 	const perPage = 30
 	page := 1
 
@@ -68,7 +68,7 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64,
 
 		for _, run := range runs.WorkflowRuns {
 			go func(r workflowRun) {
-				jobs, err := j.getJobsForRun(r, j.org, j.owner, j.repo)
+				jobs, err := j.getJobsForRun(r, j.owner, j.repo)
 				results <- result{jobs: jobs, err: err}
 			}(run)
 		}
@@ -120,8 +120,8 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64,
 }
 
 // getWorkflowRunsPath constructs the API path for fetching workflow runs
-func (j *JobRepositoryImpl) getWorkflowRunsPath(owner, repo, org string) string {
-	return getActionsBasePath(owner, repo, org) + "/runs"
+func (j *JobRepositoryImpl) getWorkflowRunsPath() string {
+	return j.basePath + "/runs"
 }
 
 // fetchWorkflowRuns fetches workflow runs from GitHub API with pagination
@@ -148,7 +148,7 @@ func (j *JobRepositoryImpl) fetchWorkflowRuns(path string, perPage, page int) (*
 }
 
 // getJobsForRun fetches all jobs for a specific workflow run
-func (j *JobRepositoryImpl) getJobsForRun(run workflowRun, org, owner, repo string) ([]*entity.Job, error) {
+func (j *JobRepositoryImpl) getJobsForRun(run workflowRun, owner, repo string) ([]*entity.Job, error) {
 	// Use the repository from the run if available, otherwise use provided values
 	runOwner := owner
 	runRepo := repo

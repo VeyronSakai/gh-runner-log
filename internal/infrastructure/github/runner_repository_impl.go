@@ -14,9 +14,7 @@ import (
 // RunnerRepositoryImpl implements the RunnerRepository interface using GitHub API
 type RunnerRepositoryImpl struct {
 	restClient *api.RESTClient
-	owner      string
-	repo       string
-	org        string
+	basePath   string
 }
 
 // NewRunnerRepository creates a new instance of RunnerRepositoryImpl
@@ -28,15 +26,13 @@ func NewRunnerRepository(owner, repo, org string) (domainrepo.RunnerRepository, 
 
 	return &RunnerRepositoryImpl{
 		restClient: restClient,
-		owner:      owner,
-		repo:       repo,
-		org:        org,
+		basePath:   getActionsBasePath(owner, repo, org),
 	}, nil
 }
 
 // FetchRunnerByName retrieves a specific runner by name
 func (r *RunnerRepositoryImpl) FetchRunnerByName(ctx context.Context, name string) (*entity.Runner, error) {
-	path := r.getRunnersPath(r.owner, r.repo, r.org)
+	path := r.getRunnersPath()
 
 	response, err := r.restClient.Request(http.MethodGet, path, nil)
 	if err != nil {
@@ -70,6 +66,6 @@ func (r *RunnerRepositoryImpl) FetchRunnerByName(ctx context.Context, name strin
 }
 
 // getRunnersPath constructs the API path for fetching runners
-func (r *RunnerRepositoryImpl) getRunnersPath(owner, repo, org string) string {
-	return getActionsBasePath(owner, repo, org) + "/runners?per_page=100"
+func (r *RunnerRepositoryImpl) getRunnersPath() string {
+	return r.basePath + "/runners?per_page=100"
 }
