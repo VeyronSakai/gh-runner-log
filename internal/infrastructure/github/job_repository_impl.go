@@ -39,24 +39,21 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 	// We fetch 100 runs which should give us plenty of jobs for filtering
 	const runsPerPage = 100
 
-	// Fetch workflow runs for all statuses
-	// GitHub Actions workflow run statuses: completed, in_progress, queued, requested, waiting
-	for _, status := range []string{"completed", "in_progress", "queued", "requested", "waiting"} {
-		path := j.getWorkflowRunsPath(owner, repo, org, status)
-		runs, err := j.fetchWorkflowRuns(path, runsPerPage)
-		if err != nil {
-			return nil, fmt.Errorf("failed to fetch %s runs: %w", status, err)
-		}
+	// Fetch workflow runs without status filter to get all statuses
+	path := j.getWorkflowRunsPath(owner, repo, org)
+	runs, err := j.fetchWorkflowRuns(path, runsPerPage)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch workflow runs: %w", err)
+	}
 
-		for _, run := range runs.WorkflowRuns {
-			jobs, err := j.getJobsForRun(run, org, owner, repo)
-			if err != nil {
-				skippedRuns++
-				lastJobErr = err
-				continue
-			}
-			allJobs = append(allJobs, jobs...)
+	for _, run := range runs.WorkflowRuns {
+		jobs, err := j.getJobsForRun(run, org, owner, repo)
+		if err != nil {
+			skippedRuns++
+			lastJobErr = err
+			continue
 		}
+		allJobs = append(allJobs, jobs...)
 	}
 
 	if skippedRuns > 0 && lastJobErr != nil && len(allJobs) == 0 {
@@ -71,12 +68,12 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 	return allJobs, nil
 }
 
-// getWorkflowRunsPath constructs the API path for fetching workflow runs with a specific status
-func (j *JobRepositoryImpl) getWorkflowRunsPath(owner, repo, org, status string) string {
+// getWorkflowRunsPath constructs the API path for fetching workflow runs
+func (j *JobRepositoryImpl) getWorkflowRunsPath(owner, repo, org string) string {
 	if org != "" {
-		return fmt.Sprintf("orgs/%s/actions/runs?status=%s", org, status)
+		return fmt.Sprintf("orgs/%s/actions/runs", org)
 	}
-	return fmt.Sprintf("repos/%s/%s/actions/runs?status=%s", owner, repo, status)
+	return fmt.Sprintf("repos/%s/%s/actions/runs", owner, repo)
 }
 
 // fetchWorkflowRuns fetches workflow runs from GitHub API (page 1 only, for backward compatibility)
