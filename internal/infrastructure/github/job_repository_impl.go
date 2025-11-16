@@ -38,13 +38,9 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 	// Start with a reasonable batch size and increase if needed
 	const maxPerPage = 100
 	const initialBatchSize = 30
+	const maxTotalRuns = 300 // Maximum total runs to fetch to avoid infinite loops
 
-	// Calculate how many jobs we might need (accounting for filtering)
-	// We use limit * 10 as a heuristic for the total jobs needed before filtering
-	targetJobCount := limit * 10
-	if targetJobCount > 1000 {
-		targetJobCount = 1000
-	}
+	fetchedRunsCount := 0
 
 	// Fetch workflow runs (completed and in_progress)
 	for _, status := range []string{"completed", "in_progress"} {
@@ -53,8 +49,8 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 		perPage := initialBatchSize
 
 		for {
-			// If we have enough jobs, stop fetching more runs
-			if len(allJobs) >= targetJobCount {
+			// Safety check: stop if we've fetched too many runs
+			if fetchedRunsCount >= maxTotalRuns {
 				break
 			}
 
@@ -68,6 +64,8 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 			if len(runs.WorkflowRuns) == 0 {
 				break
 			}
+
+			fetchedRunsCount += len(runs.WorkflowRuns)
 
 			for _, run := range runs.WorkflowRuns {
 				jobs, err := j.getJobsForRun(run, org, owner, repo)
