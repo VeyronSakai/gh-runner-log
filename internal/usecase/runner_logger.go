@@ -9,11 +9,6 @@ import (
 	"github.com/VeyronSakai/gh-runner-log/internal/domain/repository"
 )
 
-const (
-	fetchLimitMultiplier = 10
-	maxFetchLimit        = 1000
-)
-
 // RunnerLogger is a use case for fetching job history for a specific runner
 type RunnerLogger struct {
 	jobRepo    repository.JobRepository
@@ -42,12 +37,12 @@ func (r *RunnerLogger) FetchRunnerJobHistory(ctx context.Context, runnerName str
 		return nil, fmt.Errorf("failed to fetch runner: %w", err)
 	}
 
-	// Fetch job history
-	// Fetch more jobs than requested (fetchLimitMultiplier) so filtering by runner ID still returns enough rows.
-	// Cap the upstream requests at maxFetchLimit to avoid excessive API calls.
-	fetchLimit := limit * fetchLimitMultiplier
-	if fetchLimit > maxFetchLimit {
-		fetchLimit = maxFetchLimit
+	// Fetch job history with a higher limit to account for filtering
+	// We fetch more jobs because we'll filter by runner ID afterwards
+	// Start with 10x the requested limit as a heuristic
+	fetchLimit := limit * 10
+	if fetchLimit > 1000 {
+		fetchLimit = 1000
 	}
 
 	allJobs, err := r.jobRepo.FetchJobHistory(ctx, fetchLimit)
@@ -82,5 +77,3 @@ func (r *RunnerLogger) FetchRunnerJobHistory(ctx context.Context, runnerName str
 		Jobs:   runnerJobs,
 	}, nil
 }
-
-// ...existing code...
