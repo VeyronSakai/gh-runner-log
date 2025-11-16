@@ -39,7 +39,7 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64,
 	var lastJobErr error
 
 	path := j.getWorkflowRunsPath()
-	const perPage = 30
+	const perPage = 100
 	page := 1
 
 	// Fetch workflow runs page by page until we have enough jobs
