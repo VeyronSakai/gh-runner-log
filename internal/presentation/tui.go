@@ -139,20 +139,20 @@ func (m model) View() string {
 
 // TUI represents the terminal UI for displaying runner job history
 type TUI struct {
-	runnerLogUsecase *usecase.RunnerLog
+	runnerLogger *usecase.RunnerLogger
 }
 
 // NewTUI creates a new TUI with the given usecase
-func NewTUI(runnerLogUsecase *usecase.RunnerLog) *TUI {
+func NewTUI(runnerLogger *usecase.RunnerLogger) *TUI {
 	return &TUI{
-		runnerLogUsecase: runnerLogUsecase,
+		runnerLogger: runnerLogger,
 	}
 }
 
 // Run fetches runner job history and displays the interactive UI
 func (t *TUI) Run(ctx context.Context, owner, repo, org, runnerName string, limit int) error {
 	// Fetch runner job history
-	history, err := t.runnerLogUsecase.FetchRunnerJobHistory(ctx, owner, repo, org, runnerName, limit)
+	history, err := t.runnerLogger.FetchRunnerJobHistory(ctx, owner, repo, org, runnerName, limit)
 	if err != nil {
 		return fmt.Errorf("failed to fetch runner job history: %w", err)
 	}

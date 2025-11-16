@@ -14,15 +14,15 @@ const (
 	maxFetchLimit        = 1000
 )
 
-// RunnerLog is a use case for fetching job history for a specific runner
-type RunnerLog struct {
+// RunnerLogger is a use case for fetching job history for a specific runner
+type RunnerLogger struct {
 	jobRepo    repository.JobRepository
 	runnerRepo repository.RunnerRepository
 }
 
-// NewRunnerLog creates a new RunnerLog use case
-func NewRunnerLog(jobRepo repository.JobRepository, runnerRepo repository.RunnerRepository) *RunnerLog {
-	return &RunnerLog{
+// NewRunnerLogger creates a new RunnerLogger use case
+func NewRunnerLogger(jobRepo repository.JobRepository, runnerRepo repository.RunnerRepository) *RunnerLogger {
+	return &RunnerLogger{
 		jobRepo:    jobRepo,
 		runnerRepo: runnerRepo,
 	}
@@ -35,7 +35,7 @@ type RunnerJobHistory struct {
 }
 
 // FetchRunnerJobHistory fetches job history for a specific runner
-func (r *RunnerLog) FetchRunnerJobHistory(ctx context.Context, owner, repo, org, runnerName string, limit int) (*RunnerJobHistory, error) {
+func (r *RunnerLogger) FetchRunnerJobHistory(ctx context.Context, owner, repo, org, runnerName string, limit int) (*RunnerJobHistory, error) {
 	// First, fetch the runner to get its ID
 	runner, err := r.runnerRepo.FetchRunnerByName(ctx, owner, repo, org, runnerName)
 	if err != nil {

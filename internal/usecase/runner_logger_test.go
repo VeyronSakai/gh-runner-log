@@ -22,8 +22,8 @@ func TestFetchRunnerJobHistoryFiltersAndOrdersJobs(t *testing.T) {
 		{ID: 3, RunnerID: ptrInt64(42), StartedAt: &start1},
 	}
 
-	runnerLog := NewRunnerLog(&testhelpers.StubJobRepository{Jobs: jobs}, &testhelpers.StubRunnerRepository{Runner: runner})
-	history, err := runnerLog.FetchRunnerJobHistory(context.Background(), "owner", "repo", "", "runner-1", 5)
+	runnerLogger := NewRunnerLogger(&testhelpers.StubJobRepository{Jobs: jobs}, &testhelpers.StubRunnerRepository{Runner: runner})
+	history, err := runnerLogger.FetchRunnerJobHistory(context.Background(), "owner", "repo", "", "runner-1", 5)
 	if err != nil {
 		t.Fatalf("FetchRunnerJobHistory error: %v", err)
 	}
@@ -47,8 +47,8 @@ func TestFetchRunnerJobHistory_PrunesByLimit(t *testing.T) {
 		jobs = append(jobs, &entity.Job{ID: int64(i), RunnerID: ptrInt64(7), StartedAt: &started})
 	}
 
-	runnerLog := NewRunnerLog(&testhelpers.StubJobRepository{Jobs: jobs}, &testhelpers.StubRunnerRepository{Runner: runner})
-	history, err := runnerLog.FetchRunnerJobHistory(context.Background(), "", "", "", "runner", 5)
+	runnerLogger := NewRunnerLogger(&testhelpers.StubJobRepository{Jobs: jobs}, &testhelpers.StubRunnerRepository{Runner: runner})
+	history, err := runnerLogger.FetchRunnerJobHistory(context.Background(), "", "", "", "runner", 5)
 	if err != nil {
 		t.Fatalf("FetchRunnerJobHistory error: %v", err)
 	}
@@ -63,9 +63,9 @@ func TestFetchRunnerJobHistory_PrunesByLimit(t *testing.T) {
 
 func TestFetchRunnerJobHistory_PropagatesRunnerError(t *testing.T) {
 	expected := errors.New("runner missing")
-	runnerLog := NewRunnerLog(&testhelpers.StubJobRepository{}, &testhelpers.FailingRunnerRepository{Err: expected})
+	runnerLogger := NewRunnerLogger(&testhelpers.StubJobRepository{}, &testhelpers.FailingRunnerRepository{Err: expected})
 
-	_, err := runnerLog.FetchRunnerJobHistory(context.Background(), "o", "r", "", "runner", 1)
+	_, err := runnerLogger.FetchRunnerJobHistory(context.Background(), "o", "r", "", "runner", 1)
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected runner error, got %v", err)
 	}
@@ -74,9 +74,9 @@ func TestFetchRunnerJobHistory_PropagatesRunnerError(t *testing.T) {
 func TestFetchRunnerJobHistory_PropagatesJobError(t *testing.T) {
 	runner := &entity.Runner{ID: 1, Name: "runner"}
 	expected := errors.New("jobs fail")
-	runnerLog := NewRunnerLog(&testhelpers.StubJobRepository{Err: expected}, &testhelpers.StubRunnerRepository{Runner: runner})
+	runnerLogger := NewRunnerLogger(&testhelpers.StubJobRepository{Err: expected}, &testhelpers.StubRunnerRepository{Runner: runner})
 
-	_, err := runnerLog.FetchRunnerJobHistory(context.Background(), "o", "r", "", "runner", 1)
+	_, err := runnerLogger.FetchRunnerJobHistory(context.Background(), "o", "r", "", "runner", 1)
 	if !errors.Is(err, expected) {
 		t.Fatalf("expected job error, got %v", err)
 	}

@@ -64,10 +64,10 @@ func runCommand(_ *cobra.Command, args []string) error {
 	}
 
 	// Create use case
-	runnerLog := usecase.NewRunnerLog(jobRepo, runnerRepo)
+	runnerLogger := usecase.NewRunnerLogger(jobRepo, runnerRepo)
 
 	// Create and run TUI
-	tui := presentation.NewTUI(runnerLog)
+	tui := presentation.NewTUI(runnerLogger)
 	return tui.Run(ctx, owner, repoName, orgName, runnerName, limit)
 }
 
