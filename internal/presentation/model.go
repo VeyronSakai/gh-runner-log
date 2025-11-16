@@ -71,7 +71,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // GetChoice returns the selected job, if any
-func (m *Model) GetChoice() *entity.Job {
+func (m Model) GetChoice() *entity.Job {
 	return m.choice
 }
 
