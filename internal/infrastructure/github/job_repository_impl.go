@@ -16,8 +16,6 @@ import (
 type JobRepositoryImpl struct {
 	restClient *api.RESTClient
 	basePath   string
-	owner      string
-	repo       string
 }
 
 // NewJobRepository creates a new instance of JobRepositoryImpl
@@ -30,8 +28,6 @@ func NewJobRepository(owner, repo, org string) (domainrepo.JobRepository, error)
 	return &JobRepositoryImpl{
 		restClient: restClient,
 		basePath:   getActionsBasePath(owner, repo, org),
-		owner:      owner,
-		repo:       repo,
 	}, nil
 }
 
@@ -68,7 +64,7 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64,
 
 		for _, run := range runs.WorkflowRuns {
 			go func(r workflowRun) {
-				jobs, err := j.getJobsForRun(r, j.owner, j.repo)
+				jobs, err := j.getJobsForRun(r)
 				results <- result{jobs: jobs, err: err}
 			}(run)
 		}
@@ -148,17 +144,19 @@ func (j *JobRepositoryImpl) fetchWorkflowRuns(path string, perPage, page int) (*
 }
 
 // getJobsForRun fetches all jobs for a specific workflow run
-func (j *JobRepositoryImpl) getJobsForRun(run workflowRun, owner, repo string) ([]*entity.Job, error) {
-	// Use the repository from the run if available, otherwise use provided values
-	runOwner := owner
-	runRepo := repo
-	if run.Repository.FullName != "" {
-		parts := strings.Split(run.Repository.FullName, "/")
-		if len(parts) == 2 {
-			runOwner = parts[0]
-			runRepo = parts[1]
-		}
+func (j *JobRepositoryImpl) getJobsForRun(run workflowRun) ([]*entity.Job, error) {
+	// Extract owner and repo from the run's repository information
+	if run.Repository.FullName == "" {
+		return nil, fmt.Errorf("workflow run %d has no repository information", run.ID)
 	}
+
+	parts := strings.Split(run.Repository.FullName, "/")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("invalid repository full name format: %s", run.Repository.FullName)
+	}
+
+	runOwner := parts[0]
+	runRepo := parts[1]
 
 	path := fmt.Sprintf("%s/runs/%d/jobs", getRepoActionsBasePath(runOwner, runRepo), run.ID)
 	response, err := j.restClient.Request(http.MethodGet, path, nil)
