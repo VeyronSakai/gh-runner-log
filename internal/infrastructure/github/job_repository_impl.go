@@ -31,10 +31,6 @@ func NewJobRepository() (domainrepo.JobRepository, error) {
 
 // FetchJobHistory retrieves job history for a repository or organization
 func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, org string, limit int) ([]*entity.Job, error) {
-	var allJobs []*entity.Job
-	var skippedRuns int
-	var lastJobErr error
-
 	// Fetch workflow runs without status filter to get all statuses
 	// Use default per_page (30) from GitHub API
 	path := j.getWorkflowRunsPath(owner, repo, org)
@@ -43,14 +39,34 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 		return nil, fmt.Errorf("failed to fetch workflow runs: %w", err)
 	}
 
+	// Fetch jobs for each run in parallel
+	type result struct {
+		jobs []*entity.Job
+		err  error
+	}
+
+	results := make(chan result, len(runs.WorkflowRuns))
+
 	for _, run := range runs.WorkflowRuns {
-		jobs, err := j.getJobsForRun(run, org, owner, repo)
-		if err != nil {
+		go func(r workflowRun) {
+			jobs, err := j.getJobsForRun(r, org, owner, repo)
+			results <- result{jobs: jobs, err: err}
+		}(run)
+	}
+
+	// Collect results
+	var allJobs []*entity.Job
+	var skippedRuns int
+	var lastJobErr error
+
+	for i := 0; i < len(runs.WorkflowRuns); i++ {
+		res := <-results
+		if res.err != nil {
 			skippedRuns++
-			lastJobErr = err
+			lastJobErr = res.err
 			continue
 		}
-		allJobs = append(allJobs, jobs...)
+		allJobs = append(allJobs, res.jobs...)
 	}
 
 	if skippedRuns > 0 && lastJobErr != nil && len(allJobs) == 0 {
