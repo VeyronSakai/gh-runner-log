@@ -66,9 +66,9 @@ func runCommand(_ *cobra.Command, args []string) error {
 	// Create use case
 	runnerLogger := usecase.NewRunnerLogger(jobRepo, runnerRepo)
 
-	// Create and run TUI
-	tui := presentation.NewTUI(runnerLogger)
-	return tui.Run(ctx, owner, repoName, orgName, runnerName, limit)
+	// Create and run controller
+	controller := presentation.NewController(runnerLogger)
+	return controller.Run(ctx, owner, repoName, orgName, runnerName, limit)
 }
 
 func resolveRepositories(debugPath string) (repository.JobRepository, repository.RunnerRepository, error) {
