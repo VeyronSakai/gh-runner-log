@@ -37,15 +37,11 @@ func (r *RunnerLogger) FetchRunnerJobHistory(ctx context.Context, runnerName str
 		return nil, fmt.Errorf("failed to fetch runner: %w", err)
 	}
 
-	// Fetch job history with a higher limit to account for filtering
-	// We fetch more jobs because we'll filter by runner ID afterwards
-	// Start with 10x the requested limit as a heuristic
-	fetchLimit := limit * 10
-	if fetchLimit > 1000 {
-		fetchLimit = 1000
-	}
-
-	allJobs, err := r.jobRepo.FetchJobHistory(ctx, fetchLimit)
+	// Fetch job history
+	// Note: FetchJobHistory returns jobs for all runners, then we filter by runner ID
+	// The repository will paginate through workflow runs until it gets enough total jobs
+	// TODO: Consider passing runner ID to repository for more efficient filtering
+	allJobs, err := r.jobRepo.FetchJobHistory(ctx, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch job history: %w", err)
 	}
