@@ -39,8 +39,9 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 	// We fetch 100 runs which should give us plenty of jobs for filtering
 	const runsPerPage = 100
 
-	// Fetch workflow runs (completed and in_progress)
-	for _, status := range []string{"completed", "in_progress"} {
+	// Fetch workflow runs for all statuses
+	// GitHub Actions workflow run statuses: completed, in_progress, queued, requested, waiting
+	for _, status := range []string{"completed", "in_progress", "queued", "requested", "waiting"} {
 		path := j.getWorkflowRunsPath(owner, repo, org, status)
 		runs, err := j.fetchWorkflowRuns(path, runsPerPage)
 		if err != nil {
