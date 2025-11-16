@@ -13,17 +13,13 @@ var _ domainrepo.JobRepository = (*JobRepositoryImpl)(nil)
 // JobRepositoryImpl serves job data from the loaded dataset.
 type JobRepositoryImpl struct {
 	ds    *dataset
-	owner string
-	repo  string
-	org   string
+	scope string
 }
 
-func NewJobRepository(ds *dataset, owner, repo, org string) domainrepo.JobRepository {
+func NewJobRepository(ds *dataset, scope string) domainrepo.JobRepository {
 	return &JobRepositoryImpl{
 		ds:    ds,
-		owner: owner,
-		repo:  repo,
-		org:   org,
+		scope: scope,
 	}
 }
 
@@ -56,13 +52,15 @@ func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, runnerID int64, l
 	return filtered, nil
 }
 
-// matchScope verifies that the repository string should be included for the given owner/repo/org filters.
+// matchScope verifies that the repository string should be included for the given scope filter.
 func (j *JobRepositoryImpl) matchScope(repository string) bool {
-	if j.org != "" {
-		return strings.HasPrefix(repository, j.org+"/")
-	}
-	if j.owner == "" || j.repo == "" {
+	if j.scope == "" {
 		return true
 	}
-	return repository == j.owner+"/"+j.repo
+	// If scope contains "/", it's owner/repo format, otherwise it's org format
+	if strings.Contains(j.scope, "/") {
+		return repository == j.scope
+	}
+	// org format: check if repository starts with org/
+	return strings.HasPrefix(repository, j.scope+"/")
 }

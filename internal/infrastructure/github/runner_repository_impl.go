@@ -18,7 +18,7 @@ type RunnerRepositoryImpl struct {
 }
 
 // NewRunnerRepository creates a new instance of RunnerRepositoryImpl
-func NewRunnerRepository(owner, repo, org string) (domainrepo.RunnerRepository, error) {
+func NewRunnerRepository(basePath string) (domainrepo.RunnerRepository, error) {
 	restClient, err := api.DefaultRESTClient()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create REST client: %w\nPlease run 'gh auth login' to authenticate with GitHub", err)
@@ -26,7 +26,7 @@ func NewRunnerRepository(owner, repo, org string) (domainrepo.RunnerRepository, 
 
 	return &RunnerRepositoryImpl{
 		restClient: restClient,
-		basePath:   getActionsBasePath(owner, repo, org),
+		basePath:   basePath,
 	}, nil
 }
 

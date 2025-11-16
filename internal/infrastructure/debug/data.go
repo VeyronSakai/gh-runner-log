@@ -16,7 +16,16 @@ func LoadRepositories(path, owner, repo, org string) (domainrepo.JobRepository, 
 	if err != nil {
 		return nil, nil, err
 	}
-	return NewJobRepository(ds, owner, repo, org), NewRunnerRepository(ds, owner, repo, org), nil
+	
+	// Calculate scope for filtering
+	scope := ""
+	if org != "" {
+		scope = org
+	} else if owner != "" && repo != "" {
+		scope = owner + "/" + repo
+	}
+	
+	return NewJobRepository(ds, scope), NewRunnerRepository(ds, scope), nil
 }
 
 // dataFile mirrors the JSON schema used by the --debug flag.

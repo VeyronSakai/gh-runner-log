@@ -14,17 +14,13 @@ var _ domainrepo.RunnerRepository = (*RunnerRepositoryImpl)(nil)
 // RunnerRepositoryImpl serves runner data from the loaded dataset.
 type RunnerRepositoryImpl struct {
 	ds    *dataset
-	owner string
-	repo  string
-	org   string
+	scope string
 }
 
-func NewRunnerRepository(ds *dataset, owner, repo, org string) domainrepo.RunnerRepository {
+func NewRunnerRepository(ds *dataset, scope string) domainrepo.RunnerRepository {
 	return &RunnerRepositoryImpl{
 		ds:    ds,
-		owner: owner,
-		repo:  repo,
-		org:   org,
+		scope: scope,
 	}
 }
 

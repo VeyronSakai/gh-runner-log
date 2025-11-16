@@ -80,12 +80,14 @@ func resolveRepositories(debugPath, owner, repo, org string) (repository.JobRepo
 		return jobRepo, runnerRepo, nil
 	}
 
-	runnerRepo, err := github.NewRunnerRepository(owner, repo, org)
+	basePath := github.GetActionsBasePath(owner, repo, org)
+
+	runnerRepo, err := github.NewRunnerRepository(basePath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create GitHub client: %w", err)
 	}
 
-	jobRepo, err := github.NewJobRepository(owner, repo, org)
+	jobRepo, err := github.NewJobRepository(basePath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create GitHub job client: %w", err)
 	}

@@ -2,9 +2,9 @@ package github
 
 import "fmt"
 
-// getActionsBasePath returns the base path for GitHub Actions API
+// GetActionsBasePath returns the base path for GitHub Actions API
 // Returns "orgs/{org}/actions" for organization scope or "repos/{owner}/{repo}/actions" for repository scope
-func getActionsBasePath(owner, repo, org string) string {
+func GetActionsBasePath(owner, repo, org string) string {
 	if org != "" {
 		return fmt.Sprintf("orgs/%s/actions", org)
 	}

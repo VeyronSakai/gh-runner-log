@@ -19,7 +19,7 @@ type JobRepositoryImpl struct {
 }
 
 // NewJobRepository creates a new instance of JobRepositoryImpl
-func NewJobRepository(owner, repo, org string) (domainrepo.JobRepository, error) {
+func NewJobRepository(basePath string) (domainrepo.JobRepository, error) {
 	restClient, err := api.DefaultRESTClient()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create REST client: %w\nPlease run 'gh auth login' to authenticate with GitHub", err)
@@ -27,7 +27,7 @@ func NewJobRepository(owner, repo, org string) (domainrepo.JobRepository, error)
 
 	return &JobRepositoryImpl{
 		restClient: restClient,
-		basePath:   getActionsBasePath(owner, repo, org),
+		basePath:   basePath,
 	}, nil
 }
 
