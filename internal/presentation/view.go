@@ -33,9 +33,8 @@ func (m *Model) View() string {
 
 // renderHeader renders the runner information header
 func renderHeader(history *usecase.RunnerJobHistory) string {
-	return fmt.Sprintf("Runner: %s (ID: %d)\nStatus: %s | OS: %s | Labels: %s\n\n",
+	return fmt.Sprintf("Runner: %s\nStatus: %s | OS: %s | Labels: %s\n\n",
 		history.Runner.Name,
-		history.Runner.ID,
 		history.Runner.Status,
 		history.Runner.OS,
 		strings.Join(history.Runner.Labels, ", "),
