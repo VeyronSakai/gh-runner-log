@@ -144,6 +144,8 @@ func (j *JobRepositoryImpl) fetchWorkflowRuns(path string, perPage, page int) (*
 }
 
 // getJobsForRun fetches all jobs for a specific workflow run
+// Note: Jobs API always requires the specific repository path, even when querying org-scoped runs.
+// The run object contains the repository information, which we use to construct the path.
 func (j *JobRepositoryImpl) getJobsForRun(run workflowRun) ([]*entity.Job, error) {
 	// Extract owner and repo from the run's repository information
 	if run.Repository.FullName == "" {
