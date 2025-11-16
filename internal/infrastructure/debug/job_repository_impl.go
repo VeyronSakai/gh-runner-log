@@ -2,6 +2,7 @@ package debug
 
 import (
 	"context"
+	"strings"
 
 	"github.com/VeyronSakai/gh-runner-log/internal/domain/entity"
 	domainrepo "github.com/VeyronSakai/gh-runner-log/internal/domain/repository"
@@ -38,4 +39,15 @@ func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, owner, repo, org 
 	}
 
 	return filtered, nil
+}
+
+// matchScope verifies that the repository string should be included for the given owner/repo/org filters.
+func matchScope(repository, owner, repo, org string) bool {
+	if org != "" {
+		return strings.HasPrefix(repository, org+"/")
+	}
+	if owner == "" || repo == "" {
+		return true
+	}
+	return repository == owner+"/"+repo
 }
