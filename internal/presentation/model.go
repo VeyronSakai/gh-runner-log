@@ -1,6 +1,7 @@
 package presentation
 
 import (
+	"github.com/VeyronSakai/gh-runner-log/internal/domain/entity"
 	"github.com/VeyronSakai/gh-runner-log/internal/usecase"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -11,6 +12,7 @@ import (
 type Model struct {
 	table    table.Model
 	history  *usecase.RunnerJobHistory
+	choice   *entity.Job
 	quitting bool
 }
 
@@ -45,6 +47,7 @@ func NewModel(history *usecase.RunnerJobHistory) *Model {
 		Background(lipgloss.Color("57")).
 		Bold(false)
 	t.SetStyles(s)
+	t.Focus()
 
 	return &Model{
 		table:   t,
@@ -64,10 +67,23 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			m.quitting = true
 			return m, tea.Quit
+		case "enter":
+			// Get selected job
+			selectedIdx := m.table.Cursor()
+			if selectedIdx >= 0 && selectedIdx < len(m.history.Jobs) {
+				m.choice = m.history.Jobs[selectedIdx]
+				m.quitting = true
+				return m, tea.Quit
+			}
 		}
 	}
 	m.table, cmd = m.table.Update(msg)
 	return m, cmd
+}
+
+// GetChoice returns the selected job, if any
+func (m *Model) GetChoice() *entity.Job {
+	return m.choice
 }
 
 

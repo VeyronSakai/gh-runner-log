@@ -8,13 +8,6 @@ import (
 	"github.com/VeyronSakai/gh-runner-log/internal/domain/entity"
 	"github.com/VeyronSakai/gh-runner-log/internal/usecase"
 	"github.com/charmbracelet/bubbles/table"
-	"github.com/charmbracelet/lipgloss"
-)
-
-var (
-	baseStyle = lipgloss.NewStyle().
-			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("240"))
 )
 
 // View renders the model
@@ -24,7 +17,7 @@ func (m *Model) View() string {
 	}
 
 	header := renderHeader(m.history)
-	return header + "\n" + baseStyle.Render(m.table.View()) + "\n"
+	return header + "\n" + m.table.View()
 }
 
 // renderHeader renders the runner information header
