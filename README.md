@@ -7,7 +7,8 @@ A GitHub CLI extension that displays the job execution history for GitHub Action
 - 📜 View job execution history for specific self-hosted runners
 - 📊 Display job details including workflow name, status, conclusion, and duration
 - 🏢 Support for both repository and organization level runners
-- 📋 Multiple output formats (table and JSON)
+- ⌨️ Interactive UI with keyboard navigation
+- 🌐 Open job run page in browser with Enter key
 - 🔍 Configurable job limit
 
 ## Installation
@@ -20,91 +21,59 @@ gh extension install VeyronSakai/gh-runner-log
 
 ### View runner job history for current repository
 ```bash
-gh runner-log --runner my-runner-name
+gh runner-log my-runner-name
 ```
 
 ### View runner job history for specific repository
 ```bash
-gh runner-log --runner my-runner-name --repo owner/repo
+gh runner-log my-runner-name --repo owner/repo
 ```
 
 ### View runner job history for organization
 ```bash
-gh runner-log --runner my-runner-name --org organization-name
+gh runner-log my-runner-name --org organization-name
 ```
 
 ### Limit number of jobs displayed
 ```bash
-gh runner-log --runner my-runner-name --limit 20
-```
-
-### Output in JSON format
-```bash
-gh runner-log --runner my-runner-name --format json
+gh runner-log my-runner-name --limit 20
 ```
 
 ### Debug mode with sample JSON data
 ```bash
-gh runner-log --runner my-runner-name --debug ./fixtures/example-debug-data.json
+gh runner-log my-runner-name --debug ./test/sample_runner_jobs.json
 ```
 
 ## Command Line Flags
 
-- `-r, --runner` - Name of the self-hosted runner (required)
+- `<runner-name>` - Name of the self-hosted runner (required, positional argument)
 - `--repo` - Fetch runner logs for a specific repository (format: owner/repo)
 - `--org` - Fetch runner logs for an organization
 - `-l, --limit` - Maximum number of jobs to display (default: 10)
-- `-f, --format` - Output format: table or json (default: table)
 - `--debug` - Load runner/job data from a local JSON file to simulate GitHub API responses
+
+## Interactive UI
+
+The tool displays an interactive list of jobs. Use the following keys:
+
+- `↑/↓` or `j/k` - Navigate through jobs
+- `Enter` - Open the selected job's run page in your browser
+- `q` or `Ctrl+C` - Quit
 
 ## Example Output
 
-### Table Format
 ```
 Runner: my-runner (ID: 123456)
-Status: online
-OS: linux
-Labels: self-hosted, linux, x64
+Status: online | OS: linux | Labels: self-hosted, linux, x64
 
-Job History (5 jobs):
-========================================================================================================================
-JOB ID       WORKFLOW             STATUS          CONCLUSION      STARTED AT           DURATION                      
-------------------------------------------------------------------------------------------------------------------------
-987654321    CI Pipeline          completed       success         2025-11-15 10:30:00  5m 23s
-987654320    Build and Test       completed       success         2025-11-15 09:15:00  12m 45s
-987654319    Deploy Production    completed       success         2025-11-15 08:00:00  3m 12s
-987654318    Unit Tests           completed       failure         2025-11-15 07:45:00  2m 8s
-987654317    Linting              completed       success         2025-11-15 07:30:00  1m 5s
-========================================================================================================================
-```
+Job History (5 jobs)
+→ 987654321 | CI Pipeline          | completed | success | 2025-11-15 10:30:00 EST | 5m 23s
+  987654320 | Build and Test       | completed | success | 2025-11-15 09:15:00 EST | 12m 45s
+  987654319 | Deploy Production    | completed | success | 2025-11-15 08:00:00 EST | 3m 12s
+  987654318 | Unit Tests           | completed | failure | 2025-11-15 07:45:00 EST | 2m 8s
+  987654317 | Linting              | completed | success | 2025-11-15 07:30:00 EST | 1m 5s
 
-### JSON Format
-```json
-{
-  "Runner": {
-    "ID": 123456,
-    "Name": "my-runner",
-    "Labels": ["self-hosted", "linux", "x64"],
-    "OS": "linux",
-    "Status": "online"
-  },
-  "Jobs": [
-    {
-      "ID": 987654321,
-      "RunID": 876543210,
-      "Name": "build",
-      "Status": "completed",
-      "Conclusion": "success",
-      "RunnerID": 123456,
-      "RunnerName": "my-runner",
-      "StartedAt": "2025-11-15T10:30:00Z",
-      "CompletedAt": "2025-11-15T10:35:23Z",
-      "WorkflowName": "CI Pipeline",
-      "Repository": "owner/repo",
-      "HtmlUrl": "https://github.com/owner/repo/actions/runs/876543210/job/987654321"
-    }
-  ]
-}
+↑/↓: Navigate • Enter: Open in browser • q: Quit
 ```
 
 ## Development
@@ -192,7 +161,7 @@ Create a JSON file containing runners and jobs to validate CLI output without ca
 Run the CLI against this file with:
 
 ```bash
-./gh-runner-log --runner runner-a --debug ./debug.json
+./gh-runner-log runner-a --debug ./debug.json
 ```
 
 ## Architecture
@@ -209,8 +178,8 @@ This project follows Clean Architecture principles:
 - **Use Case Layer**: Application business logic
   - `runner_log`: Fetches and filters job history by runner
   
-- **Presentation Layer**: Output formatting
-  - `formatter`: Formats data for display (table/JSON)
+- **Presentation Layer**: Interactive UI
+  - `interactive_ui`: Terminal UI for browsing and selecting jobs
   
 - **Command Layer**: CLI interface
   - `cmd`: Cobra-based command definitions

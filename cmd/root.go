@@ -16,20 +16,19 @@ import (
 )
 
 var (
-	runnerName string
-	org        string
-	repo       string
-	limit      int
-	format     string
-	debugFile  string
+	org       string
+	repo      string
+	limit     int
+	debugFile string
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "gh-runner-log",
+	Use:   "gh-runner-log <runner-name>",
 	Short: "View job execution history for GitHub Actions self-hosted runners",
 	Long: `GitHub Actions Runner Log is a CLI tool that displays the job execution 
 history for a specific self-hosted runner. It shows completed and in-progress 
 jobs with details like workflow name, status, duration, and more.`,
+	Args: cobra.ExactArgs(1),
 	RunE: runCommand,
 }
 
@@ -44,27 +43,15 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().StringVarP(&runnerName, "runner", "r", "", "Name of the self-hosted runner (required)")
 	rootCmd.Flags().StringVar(&org, "org", "", "Fetch runner logs for an organization")
 	rootCmd.Flags().StringVar(&repo, "repo", "", "Fetch runner logs for a specific repository (owner/repo)")
 	rootCmd.Flags().IntVarP(&limit, "limit", "l", 10, "Maximum number of jobs to display")
-	rootCmd.Flags().StringVarP(&format, "format", "f", "table", "Output format: table or json")
 	rootCmd.Flags().StringVar(&debugFile, "debug", "", "Path to debug JSON file (bypasses GitHub API)")
-
-	// Mark runner flag as required
-	if err := rootCmd.MarkFlagRequired("runner"); err != nil {
-		// This should never fail for a valid flag name
-		panic(err)
-	}
 }
 
-func runCommand(_ *cobra.Command, _ []string) error {
+func runCommand(_ *cobra.Command, args []string) error {
 	ctx := context.Background()
-
-	outputFormat, err := parseOutputFormat(format)
-	if err != nil {
-		return err
-	}
+	runnerName := args[0]
 
 	jobRepo, runnerRepo, err := resolveRepositories(debugFile)
 	if err != nil {
@@ -85,26 +72,9 @@ func runCommand(_ *cobra.Command, _ []string) error {
 		return fmt.Errorf("failed to fetch runner job history: %w", err)
 	}
 
-	// Format and display output
-	formatter := presentation.NewFormatter(outputFormat)
-	output, err := formatter.Format(history)
-	if err != nil {
-		return fmt.Errorf("failed to format output: %w", err)
-	}
-
-	fmt.Println(output)
-	return nil
-}
-
-func parseOutputFormat(raw string) (presentation.OutputFormat, error) {
-	switch strings.ToLower(raw) {
-	case "table":
-		return presentation.FormatTable, nil
-	case "json":
-		return presentation.FormatJSON, nil
-	default:
-		return "", fmt.Errorf("invalid format: %s (supported: table, json)", raw)
-	}
+	// Display interactive UI
+	ui := presentation.NewInteractiveUI(history)
+	return ui.Run()
 }
 
 func resolveRepositories(debugPath string) (repository.JobRepository, repository.RunnerRepository, error) {
