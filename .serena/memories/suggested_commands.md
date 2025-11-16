@@ -1,0 +1,6 @@
+- Inspect tree: `ls -R` (Darwin default) or targeted `ls cmd internal`.
+- Build binary: `go build -o gh-runner-log`.
+- Run CLI: `./gh-runner-log --help` or `./gh-runner-log --runner <name>`.
+- Install as gh extension locally: `gh extension install .` / remove via `gh extension remove runner-log`.
+- Run tests: `go test ./...`; add `-cover` for coverage, `-v` for verbose.
+- Go fmt (if needed): `go fmt ./...`.

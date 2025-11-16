@@ -26,18 +26,6 @@ func (s *StubRunnerRepository) FetchRunnerByName(context.Context, string, string
 	return s.Runner, s.Err
 }
 
-// StubJobRepository implements JobRepository for tests.
-type StubJobRepository struct {
-	Jobs []*entity.Job
-	Err  error
-}
-
-var _ repository.JobRepository = (*StubJobRepository)(nil)
-
-func (s *StubJobRepository) FetchJobHistory(context.Context, string, string, string, int) ([]*entity.Job, error) {
-	return s.Jobs, s.Err
-}
-
 // FailingRunnerRepository always returns the configured error.
 type FailingRunnerRepository struct {
 	Err error

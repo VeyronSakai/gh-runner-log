@@ -1,0 +1,6 @@
+- Root files: `main.go`, `go.mod`, `go.sum`, `README.md`.
+- `cmd/root.go`: Cobra root command (flags: runner/org/repo/limit/format) executing use case.
+- `internal/domain/entity`: Runner & Job structs (+ minimal job test), `internal/domain/repository`: interfaces.
+- `internal/infrastructure/github`: REST client implementations and API DTOs.
+- `internal/usecase/runner_log.go`: orchestrates fetching runner + jobs, sorts/filters by runner, returns history struct.
+- `internal/presentation/formatter.go`: renders output as table or JSON.

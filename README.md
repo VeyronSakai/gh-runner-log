@@ -43,6 +43,11 @@ gh runner-log --runner my-runner-name --limit 20
 gh runner-log --runner my-runner-name --format json
 ```
 
+### Debug mode with sample JSON data
+```bash
+gh runner-log --runner my-runner-name --debug ./fixtures/example-debug-data.json
+```
+
 ## Command Line Flags
 
 - `-r, --runner` - Name of the self-hosted runner (required)
@@ -50,6 +55,7 @@ gh runner-log --runner my-runner-name --format json
 - `--org` - Fetch runner logs for an organization
 - `-l, --limit` - Maximum number of jobs to display (default: 10)
 - `-f, --format` - Output format: table or json (default: table)
+- `--debug` - Load runner/job data from a local JSON file to simulate GitHub API responses
 
 ## Example Output
 
@@ -147,12 +153,46 @@ gh extension remove runner-log
 ```bash
 # Run all tests
 go test ./...
+```
 
-# Run tests with coverage
-go test -cover ./...
+### Debug JSON format
 
-# Run tests with verbose output
-go test -v ./...
+Create a JSON file containing runners and jobs to validate CLI output without calling the GitHub API. For example, save the following as `debug.json`:
+
+```json
+{
+  "runners": [
+    {
+      "id": 123,
+      "name": "runner-a",
+      "labels": ["self-hosted", "linux"],
+      "os": "linux",
+      "status": "online"
+    }
+  ],
+  "jobs": [
+    {
+      "id": 98765,
+      "run_id": 54321,
+      "name": "Build",
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 123,
+      "runner_name": "runner-a",
+      "started_at": "2025-11-15T10:00:00Z",
+      "completed_at": "2025-11-15T10:05:00Z",
+      "workflow_name": "CI",
+      "repository": "owner/repo",
+      "html_url": "https://github.com/owner/repo/actions/runs/54321/job/98765"
+    }
+  ]
+}
+```
+
+Run the CLI against this file with:
+
+```bash
+./gh-runner-log --runner runner-a --debug ./debug.json
 ```
 
 ## Architecture
