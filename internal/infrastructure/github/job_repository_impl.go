@@ -35,33 +35,60 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 	var skippedRuns int
 	var lastJobErr error
 
-	// Determine per page for workflow runs
-	// We request more runs to get enough jobs for filtering
-	perPage := 100
-	if limit < 100 {
-		// For smaller limits, still fetch enough runs to have jobs to filter
-		perPage = limit
-		if perPage < 30 {
-			perPage = 30
-		}
+	// Start with a reasonable batch size and increase if needed
+	const maxPerPage = 100
+	const initialBatchSize = 30
+
+	// Calculate how many jobs we might need (accounting for filtering)
+	// We use limit * 10 as a heuristic for the total jobs needed before filtering
+	targetJobCount := limit * 10
+	if targetJobCount > 1000 {
+		targetJobCount = 1000
 	}
 
 	// Fetch workflow runs (completed and in_progress)
 	for _, status := range []string{"completed", "in_progress"} {
-		path := j.getWorkflowRunsPath(owner, repo, org, status)
-		runs, err := j.fetchWorkflowRuns(path, perPage)
-		if err != nil {
-			return nil, fmt.Errorf("failed to fetch %s runs: %w", status, err)
-		}
+		// Start with initial batch
+		page := 1
+		perPage := initialBatchSize
 
-		for _, run := range runs.WorkflowRuns {
-			jobs, err := j.getJobsForRun(run, org, owner, repo)
-			if err != nil {
-				skippedRuns++
-				lastJobErr = err
-				continue
+		for {
+			// If we have enough jobs, stop fetching more runs
+			if len(allJobs) >= targetJobCount {
+				break
 			}
-			allJobs = append(allJobs, jobs...)
+
+			path := j.getWorkflowRunsPath(owner, repo, org, status)
+			runs, err := j.fetchWorkflowRunsWithPagination(path, perPage, page)
+			if err != nil {
+				return nil, fmt.Errorf("failed to fetch %s runs (page %d): %w", status, page, err)
+			}
+
+			// If no more runs, stop
+			if len(runs.WorkflowRuns) == 0 {
+				break
+			}
+
+			for _, run := range runs.WorkflowRuns {
+				jobs, err := j.getJobsForRun(run, org, owner, repo)
+				if err != nil {
+					skippedRuns++
+					lastJobErr = err
+					continue
+				}
+				allJobs = append(allJobs, jobs...)
+			}
+
+			// If we got less than requested, we've reached the end
+			if len(runs.WorkflowRuns) < perPage {
+				break
+			}
+
+			// Move to next page with larger batch size
+			page++
+			if perPage < maxPerPage {
+				perPage = maxPerPage
+			}
 		}
 	}
 
@@ -85,15 +112,20 @@ func (j *JobRepositoryImpl) getWorkflowRunsPath(owner, repo, org, status string)
 	return fmt.Sprintf("repos/%s/%s/actions/runs?status=%s", owner, repo, status)
 }
 
-// fetchWorkflowRuns fetches workflow runs from GitHub API
+// fetchWorkflowRuns fetches workflow runs from GitHub API (page 1 only, for backward compatibility)
 func (j *JobRepositoryImpl) fetchWorkflowRuns(path string, perPage int) (*workflowRunsResponse, error) {
+	return j.fetchWorkflowRunsWithPagination(path, perPage, 1)
+}
+
+// fetchWorkflowRunsWithPagination fetches workflow runs from GitHub API with pagination support
+func (j *JobRepositoryImpl) fetchWorkflowRunsWithPagination(path string, perPage, page int) (*workflowRunsResponse, error) {
 	// Determine the separator for query parameters
 	separator := "?"
 	if strings.Contains(path, "?") {
 		separator = "&"
 	}
 
-	currentPath := fmt.Sprintf("%s%sper_page=%d&page=1", path, separator, perPage)
+	currentPath := fmt.Sprintf("%s%sper_page=%d&page=%d", path, separator, perPage, page)
 	response, err := j.restClient.Request(http.MethodGet, currentPath, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to request workflow runs: %w", err)
