@@ -13,7 +13,14 @@ import (
 // View renders the model
 func (m *Model) View() string {
 	if m.quitting {
+		if m.err != nil {
+			return fmt.Sprintf("\nError: %v\n", m.err)
+		}
 		return ""
+	}
+
+	if m.loading {
+		return fmt.Sprintf("\n%s Loading runner job history...\n", m.spinner.View())
 	}
 
 	header := renderHeader(m.history)

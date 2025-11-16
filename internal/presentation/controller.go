@@ -24,14 +24,8 @@ func NewController(runnerLogger *usecase.RunnerLogger) *Controller {
 
 // Run fetches runner job history and displays the interactive UI
 func (c *Controller) Run(ctx context.Context, runnerName string, limit int) error {
-	// Fetch runner job history
-	history, err := c.runnerLogger.FetchRunnerJobHistory(ctx, runnerName, limit)
-	if err != nil {
-		return fmt.Errorf("failed to fetch runner job history: %w", err)
-	}
-
-	// Create model
-	m := NewModel(history)
+	// Create model in loading state
+	m := newLoadingModel(c.runnerLogger, runnerName, limit)
 
 	// Run TUI
 	p := tea.NewProgram(m)
@@ -48,6 +42,15 @@ func (c *Controller) Run(ctx context.Context, runnerName string, limit int) erro
 	}
 
 	return nil
+}
+
+// newLoadingModel creates a model in loading state that will fetch data
+func newLoadingModel(runnerLogger *usecase.RunnerLogger, runnerName string, limit int) *Model {
+	m := NewModel(nil) // nil history means loading
+	m.runnerLogger = runnerLogger
+	m.runnerName = runnerName
+	m.limit = limit
+	return m
 }
 
 func openBrowser(url string) error {
