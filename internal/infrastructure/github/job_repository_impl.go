@@ -35,58 +35,26 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 	var skippedRuns int
 	var lastJobErr error
 
-	// Start with a reasonable batch size and increase if needed
-	const maxPerPage = 100
-	const initialBatchSize = 30
-	const maxTotalRuns = 300 // Maximum total runs to fetch to avoid infinite loops
-
-	fetchedRunsCount := 0
+	// Fetch a reasonable number of workflow runs (not too many to avoid slowness)
+	// We fetch 100 runs which should give us plenty of jobs for filtering
+	const runsPerPage = 100
 
 	// Fetch workflow runs (completed and in_progress)
 	for _, status := range []string{"completed", "in_progress"} {
-		// Start with initial batch
-		page := 1
-		perPage := initialBatchSize
+		path := j.getWorkflowRunsPath(owner, repo, org, status)
+		runs, err := j.fetchWorkflowRuns(path, runsPerPage)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch %s runs: %w", status, err)
+		}
 
-		for {
-			// Safety check: stop if we've fetched too many runs
-			if fetchedRunsCount >= maxTotalRuns {
-				break
-			}
-
-			path := j.getWorkflowRunsPath(owner, repo, org, status)
-			runs, err := j.fetchWorkflowRunsWithPagination(path, perPage, page)
+		for _, run := range runs.WorkflowRuns {
+			jobs, err := j.getJobsForRun(run, org, owner, repo)
 			if err != nil {
-				return nil, fmt.Errorf("failed to fetch %s runs (page %d): %w", status, page, err)
+				skippedRuns++
+				lastJobErr = err
+				continue
 			}
-
-			// If no more runs, stop
-			if len(runs.WorkflowRuns) == 0 {
-				break
-			}
-
-			fetchedRunsCount += len(runs.WorkflowRuns)
-
-			for _, run := range runs.WorkflowRuns {
-				jobs, err := j.getJobsForRun(run, org, owner, repo)
-				if err != nil {
-					skippedRuns++
-					lastJobErr = err
-					continue
-				}
-				allJobs = append(allJobs, jobs...)
-			}
-
-			// If we got less than requested, we've reached the end
-			if len(runs.WorkflowRuns) < perPage {
-				break
-			}
-
-			// Move to next page with larger batch size
-			page++
-			if perPage < maxPerPage {
-				perPage = maxPerPage
-			}
+			allJobs = append(allJobs, jobs...)
 		}
 	}
 
