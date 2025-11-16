@@ -34,8 +34,8 @@ func NewRunnerRepository(owner, repo, org string) (domainrepo.RunnerRepository, 
 	}, nil
 }
 
-// FetchRunners retrieves all runners for a repository or organization
-func (r *RunnerRepositoryImpl) FetchRunners(ctx context.Context) ([]*entity.Runner, error) {
+// FetchRunnerByName retrieves a specific runner by name
+func (r *RunnerRepositoryImpl) FetchRunnerByName(ctx context.Context, name string) (*entity.Runner, error) {
 	path := r.getRunnersPath(r.owner, r.repo, r.org)
 
 	response, err := r.restClient.Request(http.MethodGet, path, nil)
@@ -49,35 +49,20 @@ func (r *RunnerRepositoryImpl) FetchRunners(ctx context.Context) ([]*entity.Runn
 		return nil, fmt.Errorf("failed to decode runners response: %w", err)
 	}
 
-	runners := make([]*entity.Runner, 0, len(runnersResp.Runners))
 	for _, r := range runnersResp.Runners {
-		labels := make([]string, 0, len(r.Labels))
-		for _, l := range r.Labels {
-			labels = append(labels, l.Name)
-		}
+		if r.Name == name {
+			labels := make([]string, 0, len(r.Labels))
+			for _, l := range r.Labels {
+				labels = append(labels, l.Name)
+			}
 
-		runners = append(runners, &entity.Runner{
-			ID:     r.ID,
-			Name:   r.Name,
-			OS:     r.OS,
-			Status: r.Status,
-			Labels: labels,
-		})
-	}
-
-	return runners, nil
-}
-
-// FetchRunnerByName retrieves a specific runner by name
-func (r *RunnerRepositoryImpl) FetchRunnerByName(ctx context.Context, name string) (*entity.Runner, error) {
-	runners, err := r.FetchRunners(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, runner := range runners {
-		if runner.Name == name {
-			return runner, nil
+			return &entity.Runner{
+				ID:     r.ID,
+				Name:   r.Name,
+				OS:     r.OS,
+				Status: r.Status,
+				Labels: labels,
+			}, nil
 		}
 	}
 

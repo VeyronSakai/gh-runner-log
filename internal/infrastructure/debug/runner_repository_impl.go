@@ -28,11 +28,6 @@ func NewRunnerRepository(ds *dataset, owner, repo, org string) domainrepo.Runner
 	}
 }
 
-// FetchRunners returns all runners from the dataset.
-func (r *RunnerRepositoryImpl) FetchRunners(_ context.Context) ([]*entity.Runner, error) {
-	return r.ds.runners, nil
-}
-
 // FetchRunnerByName retrieves a runner by its name.
 func (r *RunnerRepositoryImpl) FetchRunnerByName(_ context.Context, name string) (*entity.Runner, error) {
 	for _, runner := range r.ds.runners {
