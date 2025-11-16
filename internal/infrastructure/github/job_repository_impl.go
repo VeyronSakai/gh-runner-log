@@ -121,10 +121,7 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64,
 
 // getWorkflowRunsPath constructs the API path for fetching workflow runs
 func (j *JobRepositoryImpl) getWorkflowRunsPath(owner, repo, org string) string {
-	if org != "" {
-		return fmt.Sprintf("orgs/%s/actions/runs", org)
-	}
-	return fmt.Sprintf("repos/%s/%s/actions/runs", owner, repo)
+	return getActionsBasePath(owner, repo, org) + "/runs"
 }
 
 // fetchWorkflowRuns fetches workflow runs from GitHub API with pagination
@@ -163,7 +160,7 @@ func (j *JobRepositoryImpl) getJobsForRun(run workflowRun, org, owner, repo stri
 		}
 	}
 
-	path := fmt.Sprintf("repos/%s/%s/actions/runs/%d/jobs", runOwner, runRepo, run.ID)
+	path := fmt.Sprintf("%s/runs/%d/jobs", getRepoActionsBasePath(runOwner, runRepo), run.ID)
 	response, err := j.restClient.Request(http.MethodGet, path, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch jobs for run %d: %w", run.ID, err)

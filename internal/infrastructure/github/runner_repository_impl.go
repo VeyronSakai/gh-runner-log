@@ -71,8 +71,5 @@ func (r *RunnerRepositoryImpl) FetchRunnerByName(ctx context.Context, name strin
 
 // getRunnersPath constructs the API path for fetching runners
 func (r *RunnerRepositoryImpl) getRunnersPath(owner, repo, org string) string {
-	if org != "" {
-		return fmt.Sprintf("orgs/%s/actions/runners?per_page=100", org)
-	}
-	return fmt.Sprintf("repos/%s/%s/actions/runners?per_page=100", owner, repo)
+	return getActionsBasePath(owner, repo, org) + "/runners?per_page=100"
 }
