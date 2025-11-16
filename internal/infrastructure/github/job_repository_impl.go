@@ -35,10 +35,15 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 	var skippedRuns int
 	var lastJobErr error
 
-	// Determine per page based on limit
-	perPage := limit
-	if perPage > 100 {
-		perPage = 100
+	// Determine per page for workflow runs
+	// We request more runs to get enough jobs for filtering
+	perPage := 100
+	if limit < 100 {
+		// For smaller limits, still fetch enough runs to have jobs to filter
+		perPage = limit
+		if perPage < 30 {
+			perPage = 30
+		}
 	}
 
 	// Fetch workflow runs (completed and in_progress)
@@ -57,19 +62,16 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 				continue
 			}
 			allJobs = append(allJobs, jobs...)
-
-			// Check if we've reached the limit
-			if len(allJobs) >= limit {
-				if len(allJobs) > limit {
-					allJobs = allJobs[:limit]
-				}
-				return allJobs, nil
-			}
 		}
 	}
 
-	if skippedRuns > 0 && lastJobErr != nil {
+	if skippedRuns > 0 && lastJobErr != nil && len(allJobs) == 0 {
 		return nil, fmt.Errorf("failed to fetch jobs for %d workflow run(s): %w", skippedRuns, lastJobErr)
+	}
+
+	// Apply limit after collecting all jobs
+	if len(allJobs) > limit {
+		allJobs = allJobs[:limit]
 	}
 
 	return allJobs, nil
