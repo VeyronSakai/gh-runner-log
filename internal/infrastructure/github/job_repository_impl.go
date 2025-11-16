@@ -35,13 +35,10 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, owner, repo, or
 	var skippedRuns int
 	var lastJobErr error
 
-	// Fetch a reasonable number of workflow runs (not too many to avoid slowness)
-	// We fetch 100 runs which should give us plenty of jobs for filtering
-	const runsPerPage = 100
-
 	// Fetch workflow runs without status filter to get all statuses
+	// Use default per_page (30) from GitHub API
 	path := j.getWorkflowRunsPath(owner, repo, org)
-	runs, err := j.fetchWorkflowRuns(path, runsPerPage)
+	runs, err := j.fetchWorkflowRuns(path, 30)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch workflow runs: %w", err)
 	}
