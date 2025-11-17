@@ -62,7 +62,7 @@ func (r *RunnerRepositoryImpl) FetchRunnerByName(ctx context.Context, name strin
 		}
 	}
 
-	return nil, fmt.Errorf("runner '%s' not found", name)
+	return nil, fmt.Errorf("runner '%s' not found in the repository", name)
 }
 
 // getRunnersPath constructs the API path for fetching runners

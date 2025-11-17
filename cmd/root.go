@@ -35,9 +35,6 @@ jobs with details like workflow name, status, duration, and more.`,
 // Execute runs the root command
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		// Explicitly ignore the error from Fprintln as we're already exiting
-		// and there's nothing meaningful we can do if stderr write fails
-		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
