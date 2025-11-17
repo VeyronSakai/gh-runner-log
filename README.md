@@ -63,17 +63,22 @@ The tool displays an interactive list of jobs. Use the following keys:
 ## Example Output
 
 ```
-Runner: my-runner (ID: 123456)
-Status: online | OS: linux | Labels: self-hosted, linux, x64
+Runner: my-runner
+Status: online
+OS: linux
+Labels: self-hosted, linux, x64
 
-Job History (5 jobs)
-→ 987654321 | CI Pipeline          | completed | success | 2025-11-15 10:30:00 EST | 5m 23s
-  987654320 | Build and Test       | completed | success | 2025-11-15 09:15:00 EST | 12m 45s
-  987654319 | Deploy Production    | completed | success | 2025-11-15 08:00:00 EST | 3m 12s
-  987654318 | Unit Tests           | completed | failure | 2025-11-15 07:45:00 EST | 2m 8s
-  987654317 | Linting              | completed | success | 2025-11-15 07:30:00 EST | 1m 5s
+┌───────────────┬──────────────────────┬───────────┬────────────┬──────────────────────────────┬──────────┐
+│ Workflow      │ Job                  │ Status    │ Conclusion │ Started At                   │ Duration │
+├───────────────┼──────────────────────┼───────────┼────────────┼──────────────────────────────┼──────────┤
+│ CI Pipeline   │ Build                │ completed │ success    │ 2025-11-15 10:30:00 EST      │ 5m 23s   │
+│ Build and Test│ Test                 │ completed │ success    │ 2025-11-15 09:15:00 EST      │ 12m 45s  │
+│ Deploy Prod   │ Deploy               │ completed │ success    │ 2025-11-15 08:00:00 EST      │ 3m 12s   │
+│ Unit Tests    │ Unit Test            │ completed │ failure    │ 2025-11-15 07:45:00 EST      │ 2m 8s    │
+│ Linting       │ Lint                 │ completed │ success    │ 2025-11-15 07:30:00 EST      │ 1m 5s    │
+└───────────────┴──────────────────────┴───────────┴────────────┴──────────────────────────────┴──────────┘
 
-↑/↓: Navigate • Enter: Open in browser • q: Quit
+↑/↓ or j/k: Navigate • Enter: Open in browser • q or Ctrl+C: Quit
 ```
 
 ## Development
