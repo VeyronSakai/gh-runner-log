@@ -61,8 +61,8 @@ func buildRows(jobs []*entity.Job) []table.Row {
 		}
 
 		rows[i] = table.Row{
-			truncate(job.Name, 25),
-			truncate(job.WorkflowName, 20),
+			job.Name,
+			job.WorkflowName,
 			job.Status,
 			conclusion,
 			startedAt,
@@ -70,14 +70,6 @@ func buildRows(jobs []*entity.Job) []table.Row {
 		}
 	}
 	return rows
-}
-
-// truncate truncates a string to the specified length
-func truncate(s string, maxLen int) string {
-	if len(s) <= maxLen {
-		return s
-	}
-	return s[:maxLen-3] + "..."
 }
 
 // formatDuration formats a duration in a human-readable format

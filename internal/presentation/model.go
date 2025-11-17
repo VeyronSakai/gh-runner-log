@@ -13,6 +13,27 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// Column width constants
+const (
+	minJobNameWidth     = 15
+	minWorkflowWidth    = 15
+	minStatusWidth      = 12
+	minConclusionWidth  = 12
+	minStartedAtWidth   = 25
+	minDurationWidth    = 15
+	borderPadding       = 10
+	headerFooterHeight  = 8
+	defaultTableHeight  = 20
+	defaultTerminalWidth = 120
+
+	// Proportions for distributing extra width
+	ratioJobName   = 0.25
+	ratioWorkflow  = 0.25
+	ratioStatus    = 0.15
+	ratioConclusion = 0.15
+	ratioStartedAt = 0.20
+)
+
 // Model represents the application state for the TUI
 type Model struct {
 	table        table.Model
@@ -24,6 +45,8 @@ type Model struct {
 	runnerLogger *usecase.RunnerLogger
 	runnerName   string
 	limit        int
+	width        int
+	height       int
 	err          error
 }
 
@@ -80,7 +103,71 @@ func NewModel(history *usecase.RunnerJobHistory) *Model {
 		spinner: s,
 		history: history,
 		loading: loading,
+		width:   defaultTerminalWidth,
+		height:  defaultTableHeight + headerFooterHeight,
 	}
+}
+
+// getCalculatedColumnWidths calculates column widths based on available terminal width
+func getCalculatedColumnWidths(terminalWidth int) []table.Column {
+	if terminalWidth == 0 {
+		terminalWidth = defaultTerminalWidth
+	}
+
+	availableWidth := terminalWidth - borderPadding
+	totalMinWidth := minJobNameWidth + minWorkflowWidth + minStatusWidth + 
+		minConclusionWidth + minStartedAtWidth + minDurationWidth
+
+	if availableWidth < totalMinWidth {
+		// Terminal is too small, use minimum widths
+		return []table.Column{
+			{Title: "Job Name", Width: minJobNameWidth},
+			{Title: "Workflow", Width: minWorkflowWidth},
+			{Title: "Status", Width: minStatusWidth},
+			{Title: "Conclusion", Width: minConclusionWidth},
+			{Title: "Started At", Width: minStartedAtWidth},
+			{Title: "Duration", Width: minDurationWidth},
+		}
+	}
+
+	remainingWidth := availableWidth - totalMinWidth
+
+	// Distribute remaining width proportionally
+	jobNameExtra := int(float64(remainingWidth) * ratioJobName)
+	workflowExtra := int(float64(remainingWidth) * ratioWorkflow)
+	statusExtra := int(float64(remainingWidth) * ratioStatus)
+	conclusionExtra := int(float64(remainingWidth) * ratioConclusion)
+	startedAtExtra := int(float64(remainingWidth) * ratioStartedAt)
+
+	return []table.Column{
+		{Title: "Job Name", Width: minJobNameWidth + jobNameExtra},
+		{Title: "Workflow", Width: minWorkflowWidth + workflowExtra},
+		{Title: "Status", Width: minStatusWidth + statusExtra},
+		{Title: "Conclusion", Width: minConclusionWidth + conclusionExtra},
+		{Title: "Started At", Width: minStartedAtWidth + startedAtExtra},
+		{Title: "Duration", Width: minDurationWidth},
+	}
+}
+
+// getCalculatedTableHeight calculates table height based on terminal height
+func getCalculatedTableHeight(terminalHeight int) int {
+	if terminalHeight == 0 {
+		return defaultTableHeight
+	}
+	height := terminalHeight - headerFooterHeight
+	if height < 5 {
+		return 5
+	}
+	return height
+}
+
+// updateTableDimensions updates the table dimensions based on current terminal size
+func (m *Model) updateTableDimensions() {
+	columns := getCalculatedColumnWidths(m.width)
+	m.table.SetColumns(columns)
+	
+	tableHeight := getCalculatedTableHeight(m.height)
+	m.table.SetHeight(tableHeight)
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -104,6 +191,14 @@ func (m *Model) fetchHistory() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		if !m.loading {
+			m.updateTableDimensions()
+		}
+		return m, nil
+
 	case historyLoadedMsg:
 		if msg.err != nil {
 			m.err = msg.err
@@ -114,22 +209,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loading = false
 		
 		// Build table now that we have data
-		columns := []table.Column{
-			{Title: "Job Name", Width: 25},
-			{Title: "Workflow", Width: 20},
-			{Title: "Status", Width: 12},
-			{Title: "Conclusion", Width: 12},
-			{Title: "Started At", Width: 25},
-			{Title: "Duration", Width: 15},
-		}
-
+		columns := getCalculatedColumnWidths(m.width)
 		rows := buildRows(m.history.Jobs)
 
+		tableHeight := getCalculatedTableHeight(m.height)
 		m.table = table.New(
 			table.WithColumns(columns),
 			table.WithRows(rows),
 			table.WithFocused(true),
-			table.WithHeight(20),
+			table.WithHeight(tableHeight),
 		)
 
 		ts := table.DefaultStyles()
