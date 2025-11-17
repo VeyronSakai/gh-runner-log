@@ -36,7 +36,7 @@ gh runner-log my-runner-name --org organization-name
 
 ### Limit number of jobs displayed
 ```bash
-gh runner-log my-runner-name --limit 20
+gh runner-log my-runner-name --max-count 20
 ```
 
 ### Debug mode with sample JSON data
@@ -49,7 +49,7 @@ gh runner-log my-runner-name --debug ./test/sample_runner_jobs.json
 - `<runner-name>` - Name of the self-hosted runner (required, positional argument)
 - `--repo` - Fetch runner logs for a specific repository (format: owner/repo)
 - `--org` - Fetch runner logs for an organization
-- `-l, --limit` - Maximum number of jobs to display (default: 10)
+- `-n, --max-count` - Maximum number of jobs to display (default: 5)
 - `--debug` - Load runner/job data from a local JSON file to simulate GitHub API responses
 
 ## Interactive UI
@@ -102,7 +102,7 @@ go build -o gh-runner-log
 ./gh-runner-log --help
 
 # View runner job history
-./gh-runner-log --runner my-runner-name
+./gh-runner-log my-runner-name
 ```
 
 #### 2. Install as gh extension from local directory
@@ -111,7 +111,7 @@ go build -o gh-runner-log
 gh extension install .
 
 # Run as gh extension
-gh runner-log --runner my-runner-name
+gh runner-log my-runner-name
 
 # Uninstall when done testing
 gh extension remove runner-log

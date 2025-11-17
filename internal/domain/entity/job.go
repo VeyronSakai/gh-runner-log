@@ -2,6 +2,13 @@ package entity
 
 import "time"
 
+// Job status constants
+const (
+	StatusCompleted  = "completed"
+	StatusInProgress = "in_progress"
+	StatusQueued     = "queued"
+)
+
 // Job represents a GitHub Actions workflow job
 type Job struct {
 	ID           int64
@@ -20,7 +27,7 @@ type Job struct {
 
 // IsCompleted returns true if the job has finished execution
 func (j *Job) IsCompleted() bool {
-	return j.Status == "completed"
+	return j.Status == StatusCompleted
 }
 
 // IsAssignedToRunner returns true if the job is assigned to a specific runner

@@ -35,12 +35,12 @@ func NewJobRepository(basePath string) (domainrepo.JobRepository, error) {
 // If runnerID is provided (> 0), only jobs assigned to that runner are returned
 func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64, limit int) ([]*entity.Job, error) {
 	var allJobs []*entity.Job
-	var skippedRuns int
-	var lastJobErr error
 
 	path := j.getWorkflowRunsPath()
 	const perPage = 100
 	page := 1
+	var skippedRuns int
+	var lastJobErr error
 
 	// Fetch workflow runs page by page until we have enough jobs
 	for {
@@ -69,7 +69,7 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64,
 			}(run)
 		}
 
-		// Collect results and filter by runner ID if specified
+		// Collect results sequentially (no race condition)
 		for i := 0; i < len(runs.WorkflowRuns); i++ {
 			res := <-results
 			if res.err != nil {
@@ -78,7 +78,7 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64,
 				continue
 			}
 
-			// Filter by runner ID if specified
+			// Filter by runner ID if specified and append sequentially
 			if runnerID > 0 {
 				for _, job := range res.jobs {
 					if job.IsAssignedToRunner(runnerID) {

@@ -64,8 +64,8 @@ func NewModel(history *usecase.RunnerJobHistory) *Model {
 
 	if !loading {
 		columns := []table.Column{
-			{Title: "ID", Width: 10},
 			{Title: "Workflow", Width: 20},
+			{Title: "Job", Width: 20},
 			{Title: "Status", Width: 12},
 			{Title: "Conclusion", Width: 12},
 			{Title: "Started At", Width: 25},

@@ -50,7 +50,7 @@ func buildRows(jobs []*entity.Job) []table.Row {
 		if job.CompletedAt != nil && job.StartedAt != nil {
 			d := job.GetExecutionDuration()
 			duration = formatDuration(d)
-		} else if job.StartedAt != nil && job.Status == "in_progress" {
+		} else if job.StartedAt != nil && job.Status == entity.StatusInProgress {
 			d := time.Since(*job.StartedAt)
 			duration = formatDuration(d) + " (running)"
 		}
