@@ -45,7 +45,7 @@ func Execute() {
 func init() {
 	rootCmd.Flags().StringVar(&org, "org", "", "Fetch runner logs for an organization")
 	rootCmd.Flags().StringVar(&repo, "repo", "", "Fetch runner logs for a specific repository (owner/repo)")
-	rootCmd.Flags().IntVarP(&maxCount, "max-count", "n", 5, "Maximum number of history to display")
+	rootCmd.Flags().IntVarP(&maxCount, "max-count", "n", 5, "Maximum number of jobs to display")
 	rootCmd.Flags().StringVar(&debugFile, "debug", "", "Path to debug JSON file (bypasses GitHub API)")
 }
 
