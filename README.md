@@ -1,6 +1,6 @@
 # gh-runner-log
 
-A GitHub CLI extension that displays the job execution history for GitHub Actions self-hosted runners.
+A GitHub CLI extension that displays the job run history of any GitHub Actions self-hosted runner.
 
 ## Features
 
