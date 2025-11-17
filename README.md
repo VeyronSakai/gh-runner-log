@@ -9,6 +9,9 @@ A GitHub CLI extension that displays the job execution history for GitHub Action
 - ⌨️ Interactive UI with keyboard navigation
 - 🌐 Open job run page in browser with Enter key
 
+<img width="831" height="268" alt="スクリーンショット 2025-11-18 1 00 23" src="https://github.com/user-attachments/assets/a0f20cb8-b4d4-497f-bf4b-b2298f021942" />
+
+
 ## Installation
 
 ```bash
