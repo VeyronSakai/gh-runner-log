@@ -39,8 +39,6 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64,
 	path := j.getWorkflowRunsPath()
 	const perPage = 100
 	page := 1
-	var skippedRuns int
-	var lastJobErr error
 
 	// Fetch workflow runs page by page until we have enough jobs
 	for {
@@ -73,8 +71,7 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64,
 		for i := 0; i < len(runs.WorkflowRuns); i++ {
 			res := <-results
 			if res.err != nil {
-				skippedRuns++
-				lastJobErr = res.err
+				// Skip runs that fail to fetch jobs - continue with partial data
 				continue
 			}
 
@@ -101,10 +98,6 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64,
 		}
 
 		page++
-	}
-
-	if skippedRuns > 0 && lastJobErr != nil && len(allJobs) == 0 {
-		return nil, fmt.Errorf("failed to fetch jobs for %d workflow run(s): %w", skippedRuns, lastJobErr)
 	}
 
 	// Apply limit after collecting all jobs
