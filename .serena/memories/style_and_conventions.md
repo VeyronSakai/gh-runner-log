@@ -1,5 +1,0 @@
-- Go modules / standard Go formatting; run `gofmt` via `go fmt ./...` if needed though not explicitly stated.
-- Clean Architecture separation: do not mix domain/usecase/presentation/infrastructure concerns.
-- Cobra CLI patterns for flags and `RunE` handling; errors wrapped with context.
-- Entities/repositories under `internal/domain`, use cases under `internal/usecase`, so new features should respect layering.
-- README emphasizes tests via `go test ./...` and building with `go build -o gh-runner-log`.
