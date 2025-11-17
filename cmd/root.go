@@ -18,7 +18,7 @@ import (
 var (
 	org       string
 	repo      string
-	limit     int
+	maxCount  int
 	debugFile string
 )
 
@@ -45,7 +45,7 @@ func Execute() {
 func init() {
 	rootCmd.Flags().StringVar(&org, "org", "", "Fetch runner logs for an organization")
 	rootCmd.Flags().StringVar(&repo, "repo", "", "Fetch runner logs for a specific repository (owner/repo)")
-	rootCmd.Flags().IntVarP(&limit, "limit", "l", 10, "Maximum number of history to display")
+	rootCmd.Flags().IntVarP(&maxCount, "max-count", "n", 5, "Maximum number of history to display")
 	rootCmd.Flags().StringVar(&debugFile, "debug", "", "Path to debug JSON file (bypasses GitHub API)")
 }
 
@@ -68,7 +68,7 @@ func runCommand(_ *cobra.Command, args []string) error {
 
 	// Create and run controller
 	controller := presentation.NewController(runnerLogger)
-	return controller.Run(ctx, runnerName, limit)
+	return controller.Run(ctx, runnerName, maxCount)
 }
 
 func resolveRepositories(debugPath, owner, repo, org string) (repository.JobRepository, repository.RunnerRepository, error) {

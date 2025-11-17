@@ -15,20 +15,20 @@ import (
 
 // Column width constants
 const (
-	minWorkflowWidth    = 20
-	minJobWidth         = 20
-	statusWidth         = 12
-	conclusionWidth     = 12
-	startedAtWidth      = 25
-	durationWidth       = 15
-	borderPadding       = 10
-	headerFooterHeight  = 8
-	defaultTableHeight  = 20
+	minWorkflowWidth     = 20
+	minJobWidth          = 20
+	statusWidth          = 12
+	conclusionWidth      = 12
+	startedAtWidth       = 25
+	durationWidth        = 15
+	borderPadding        = 10
+	headerFooterHeight   = 8
+	defaultTableHeight   = 20
 	defaultTerminalWidth = 120
 
 	// Proportions for distributing extra width (only for Workflow and Job)
-	ratioWorkflow  = 0.5
-	ratioJob       = 0.5
+	ratioWorkflow = 0.5
+	ratioJob      = 0.5
 )
 
 // Model represents the application state for the TUI
@@ -41,7 +41,7 @@ type Model struct {
 	quitting     bool
 	runnerLogger *usecase.RunnerLogger
 	runnerName   string
-	limit        int
+	maxCount     int
 	width        int
 	height       int
 	err          error
@@ -159,7 +159,7 @@ func getCalculatedTableHeight(terminalHeight int) int {
 func (m *Model) updateTableDimensions() {
 	columns := getCalculatedColumnWidths(m.width)
 	m.table.SetColumns(columns)
-	
+
 	tableHeight := getCalculatedTableHeight(m.height)
 	m.table.SetHeight(tableHeight)
 }
@@ -177,7 +177,7 @@ func (m *Model) Init() tea.Cmd {
 // fetchHistory fetches the runner job history
 func (m *Model) fetchHistory() tea.Cmd {
 	return func() tea.Msg {
-		history, err := m.runnerLogger.FetchRunnerJobHistory(context.Background(), m.runnerName, m.limit)
+		history, err := m.runnerLogger.FetchRunnerJobHistory(context.Background(), m.runnerName, m.maxCount)
 		return historyLoadedMsg{history: history, err: err}
 	}
 }
@@ -201,7 +201,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.history = msg.history
 		m.loading = false
-		
+
 		// Build table now that we have data
 		columns := getCalculatedColumnWidths(m.width)
 		rows := buildRows(m.history.Jobs)
@@ -227,7 +227,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.table.SetStyles(ts)
 		m.table.Focus()
 		return m, nil
-		
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q", "ctrl+c":
@@ -245,7 +245,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	}
-	
+
 	if m.loading {
 		m.spinner, cmd = m.spinner.Update(msg)
 	} else {
@@ -277,7 +277,8 @@ func openBrowserAsync(url string) {
 	}
 
 	args = append(args, url)
-	exec.Command(cmd, args...).Start()
+	err := exec.Command(cmd, args...).Start()
+	if err != nil {
+		return
+	}
 }
-
-

@@ -21,9 +21,9 @@ func NewController(runnerLogger *usecase.RunnerLogger) *Controller {
 }
 
 // Run fetches runner job history and displays the interactive UI
-func (c *Controller) Run(ctx context.Context, runnerName string, limit int) error {
+func (c *Controller) Run(ctx context.Context, runnerName string, maxCount int) error {
 	// Create model in loading state
-	m := newLoadingModel(c.runnerLogger, runnerName, limit)
+	m := newLoadingModel(c.runnerLogger, runnerName, maxCount)
 
 	// Run TUI
 	p := tea.NewProgram(m)
@@ -36,10 +36,10 @@ func (c *Controller) Run(ctx context.Context, runnerName string, limit int) erro
 }
 
 // newLoadingModel creates a model in loading state that will fetch data
-func newLoadingModel(runnerLogger *usecase.RunnerLogger, runnerName string, limit int) *Model {
+func newLoadingModel(runnerLogger *usecase.RunnerLogger, runnerName string, maxCount int) *Model {
 	m := NewModel(nil) // nil history means loading
 	m.runnerLogger = runnerLogger
 	m.runnerName = runnerName
-	m.limit = limit
+	m.maxCount = maxCount
 	return m
 }
