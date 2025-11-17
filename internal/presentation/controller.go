@@ -27,9 +27,14 @@ func (c *Controller) Run(ctx context.Context, runnerName string, maxCount int) e
 
 	// Run TUI
 	p := tea.NewProgram(m)
-	_, err := p.Run()
+	finalModel, err := p.Run()
 	if err != nil {
 		return fmt.Errorf("error running interactive UI: %w", err)
+	}
+
+	// Check if the model has an error from data loading
+	if model, ok := finalModel.(*Model); ok && model.err != nil {
+		return model.err
 	}
 
 	return nil

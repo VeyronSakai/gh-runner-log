@@ -12,10 +12,7 @@ import (
 
 // View renders the model
 func (m *Model) View() string {
-	if m.quitting {
-		if m.err != nil {
-			return fmt.Sprintf("\nError: %v\n", m.err)
-		}
+	if m.quitting || m.err != nil {
 		return ""
 	}
 
