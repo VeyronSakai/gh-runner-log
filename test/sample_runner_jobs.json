@@ -1,0 +1,63 @@
+{
+  "runners": [
+    {
+      "id": 101,
+      "name": "runner-a",
+      "labels": ["self-hosted", "linux"],
+      "os": "linux",
+      "status": "online"
+    },
+    {
+      "id": 202,
+      "name": "runner-b",
+      "labels": ["self-hosted", "linux", "gpu"],
+      "os": "linux",
+      "status": "idle"
+    }
+  ],
+  "jobs": [
+    {
+      "id": 1,
+      "run_id": 1001,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 101,
+      "runner_name": "runner-a",
+      "started_at": "2025-11-16T01:00:00Z",
+      "completed_at": "2025-11-16T01:04:00Z",
+      "workflow_name": "CI",
+      "repository": "owner/repo",
+      "html_url": "https://github.com/owner/repo/actions/runs/1001/job/1"
+    },
+    {
+      "id": 2,
+      "run_id": 1002,
+      "name": "deploy",
+      "status": "in_progress",
+      "conclusion": "",
+      "runner_id": 202,
+      "runner_name": "runner-b",
+      "started_at": "2025-11-16T02:00:00Z",
+      "completed_at": null,
+      "workflow_name": "Deploy",
+      "repository": "owner/repo",
+      "html_url": "https://github.com/owner/repo/actions/runs/1002/job/2"
+    },
+    {
+      "id": 3,
+      "run_id": 1003,
+      "name": "lint",
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 101,
+      "runner_name": "runner-a",
+      "started_at": "2025-11-16T03:00:00Z",
+      "completed_at": "2025-11-16T03:01:30Z",
+      "workflow_name": "Lint",
+      "repository": "owner/repo",
+      "html_url": "https://github.com/owner/repo/actions/runs/1003/job/3"
+    }
+  ]
+}
+
