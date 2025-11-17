@@ -61,8 +61,8 @@ func buildRows(jobs []*entity.Job) []table.Row {
 		}
 
 		rows[i] = table.Row{
-			job.Name,
 			job.WorkflowName,
+			job.Name,
 			job.Status,
 			conclusion,
 			startedAt,

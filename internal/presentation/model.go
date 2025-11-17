@@ -15,23 +15,20 @@ import (
 
 // Column width constants
 const (
-	minJobNameWidth     = 15
-	minWorkflowWidth    = 15
-	minStatusWidth      = 12
-	minConclusionWidth  = 12
-	minStartedAtWidth   = 25
-	minDurationWidth    = 15
+	minWorkflowWidth    = 20
+	minJobWidth         = 20
+	statusWidth         = 12
+	conclusionWidth     = 12
+	startedAtWidth      = 25
+	durationWidth       = 15
 	borderPadding       = 10
 	headerFooterHeight  = 8
 	defaultTableHeight  = 20
 	defaultTerminalWidth = 120
 
-	// Proportions for distributing extra width
-	ratioJobName   = 0.25
-	ratioWorkflow  = 0.25
-	ratioStatus    = 0.15
-	ratioConclusion = 0.15
-	ratioStartedAt = 0.20
+	// Proportions for distributing extra width (only for Workflow and Job)
+	ratioWorkflow  = 0.5
+	ratioJob       = 0.5
 )
 
 // Model represents the application state for the TUI
@@ -115,37 +112,34 @@ func getCalculatedColumnWidths(terminalWidth int) []table.Column {
 	}
 
 	availableWidth := terminalWidth - borderPadding
-	totalMinWidth := minJobNameWidth + minWorkflowWidth + minStatusWidth + 
-		minConclusionWidth + minStartedAtWidth + minDurationWidth
+	fixedWidth := statusWidth + conclusionWidth + startedAtWidth + durationWidth
+	totalMinWidth := minWorkflowWidth + minJobWidth + fixedWidth
 
 	if availableWidth < totalMinWidth {
 		// Terminal is too small, use minimum widths
 		return []table.Column{
-			{Title: "Job Name", Width: minJobNameWidth},
 			{Title: "Workflow", Width: minWorkflowWidth},
-			{Title: "Status", Width: minStatusWidth},
-			{Title: "Conclusion", Width: minConclusionWidth},
-			{Title: "Started At", Width: minStartedAtWidth},
-			{Title: "Duration", Width: minDurationWidth},
+			{Title: "Job", Width: minJobWidth},
+			{Title: "Status", Width: statusWidth},
+			{Title: "Conclusion", Width: conclusionWidth},
+			{Title: "Started At", Width: startedAtWidth},
+			{Title: "Duration", Width: durationWidth},
 		}
 	}
 
 	remainingWidth := availableWidth - totalMinWidth
 
-	// Distribute remaining width proportionally
-	jobNameExtra := int(float64(remainingWidth) * ratioJobName)
+	// Distribute remaining width proportionally between Workflow and Job
 	workflowExtra := int(float64(remainingWidth) * ratioWorkflow)
-	statusExtra := int(float64(remainingWidth) * ratioStatus)
-	conclusionExtra := int(float64(remainingWidth) * ratioConclusion)
-	startedAtExtra := int(float64(remainingWidth) * ratioStartedAt)
+	jobExtra := int(float64(remainingWidth) * ratioJob)
 
 	return []table.Column{
-		{Title: "Job Name", Width: minJobNameWidth + jobNameExtra},
 		{Title: "Workflow", Width: minWorkflowWidth + workflowExtra},
-		{Title: "Status", Width: minStatusWidth + statusExtra},
-		{Title: "Conclusion", Width: minConclusionWidth + conclusionExtra},
-		{Title: "Started At", Width: minStartedAtWidth + startedAtExtra},
-		{Title: "Duration", Width: minDurationWidth},
+		{Title: "Job", Width: minJobWidth + jobExtra},
+		{Title: "Status", Width: statusWidth},
+		{Title: "Conclusion", Width: conclusionWidth},
+		{Title: "Started At", Width: startedAtWidth},
+		{Title: "Duration", Width: durationWidth},
 	}
 }
 
