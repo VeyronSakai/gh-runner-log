@@ -6,10 +6,8 @@ A GitHub CLI extension that displays the job execution history for GitHub Action
 
 - 📜 View job execution history for specific self-hosted runners
 - 📊 Display job details including workflow name, status, conclusion, and duration
-- 🏢 Support for both repository and organization level runners
 - ⌨️ Interactive UI with keyboard navigation
 - 🌐 Open job run page in browser with Enter key
-- 🔍 Configurable job limit
 
 ## Installation
 
@@ -34,14 +32,9 @@ gh runner-log my-runner-name --repo owner/repo
 gh runner-log my-runner-name --org organization-name
 ```
 
-### Limit number of jobs displayed
+### Specify number of jobs displayed
 ```bash
-gh runner-log my-runner-name --max-count 20
-```
-
-### Debug mode with sample JSON data
-```bash
-gh runner-log my-runner-name --debug ./test/sample_runner_jobs.json
+gh runner-log my-runner-name --max-count 10
 ```
 
 ## Command Line Flags
@@ -168,27 +161,3 @@ Run the CLI against this file with:
 ```bash
 ./gh-runner-log runner-a --debug ./debug.json
 ```
-
-## Architecture
-
-This project follows Clean Architecture principles:
-
-- **Domain Layer**: Core business entities and repository interfaces
-  - `entity`: Job and Runner entities
-  - `repository`: Interfaces for data access
-  
-- **Infrastructure Layer**: External service implementations
-  - `github`: GitHub API client implementations
-  
-- **Use Case Layer**: Application business logic
-  - `runner_log`: Fetches and filters job history by runner
-  
-- **Presentation Layer**: Interactive UI
-  - `interactive_ui`: Terminal UI for browsing and selecting jobs
-  
-- **Command Layer**: CLI interface
-  - `cmd`: Cobra-based command definitions
-
-## License
-
-MIT
