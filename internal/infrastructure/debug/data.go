@@ -45,6 +45,7 @@ type runnerRecord struct {
 type jobRecord struct {
 	ID           int64      `json:"id"`
 	RunID        int64      `json:"run_id"`
+	RunAttempt   int        `json:"run_attempt"`
 	Name         string     `json:"name"`
 	Status       string     `json:"status"`
 	Conclusion   string     `json:"conclusion"`
@@ -97,6 +98,7 @@ func loadDataset(path string) (*dataset, error) {
 		job := &entity.Job{
 			ID:           j.ID,
 			RunID:        j.RunID,
+			RunAttempt:   j.RunAttempt,
 			Name:         j.Name,
 			Status:       j.Status,
 			Conclusion:   j.Conclusion,

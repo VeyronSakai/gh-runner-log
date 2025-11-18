@@ -17,6 +17,7 @@ import (
 const (
 	minWorkflowWidth     = 20
 	minJobWidth          = 20
+	attemptWidth         = 8
 	statusWidth          = 12
 	conclusionWidth      = 12
 	startedAtWidth       = 25
@@ -66,6 +67,7 @@ func NewModel(history *usecase.RunnerJobHistory) *Model {
 		columns := []table.Column{
 			{Title: "Workflow", Width: 20},
 			{Title: "Job", Width: 20},
+			{Title: "Attempt", Width: 8},
 			{Title: "Status", Width: 12},
 			{Title: "Conclusion", Width: 12},
 			{Title: "Started At", Width: 25},
@@ -112,7 +114,7 @@ func getCalculatedColumnWidths(terminalWidth int) []table.Column {
 	}
 
 	availableWidth := terminalWidth - borderPadding
-	fixedWidth := statusWidth + conclusionWidth + startedAtWidth + durationWidth
+	fixedWidth := attemptWidth + statusWidth + conclusionWidth + startedAtWidth + durationWidth
 	totalMinWidth := minWorkflowWidth + minJobWidth + fixedWidth
 
 	if availableWidth < totalMinWidth {
@@ -120,6 +122,7 @@ func getCalculatedColumnWidths(terminalWidth int) []table.Column {
 		return []table.Column{
 			{Title: "Workflow", Width: minWorkflowWidth},
 			{Title: "Job", Width: minJobWidth},
+			{Title: "Attempt", Width: attemptWidth},
 			{Title: "Status", Width: statusWidth},
 			{Title: "Conclusion", Width: conclusionWidth},
 			{Title: "Started At", Width: startedAtWidth},
@@ -136,6 +139,7 @@ func getCalculatedColumnWidths(terminalWidth int) []table.Column {
 	return []table.Column{
 		{Title: "Workflow", Width: minWorkflowWidth + workflowExtra},
 		{Title: "Job", Width: minJobWidth + jobExtra},
+		{Title: "Attempt", Width: attemptWidth},
 		{Title: "Status", Width: statusWidth},
 		{Title: "Conclusion", Width: conclusionWidth},
 		{Title: "Started At", Width: startedAtWidth},

@@ -40,13 +40,6 @@ func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, runnerID int64, l
 		}
 
 		filtered = append(filtered, job)
-		if len(filtered) >= limit {
-			break
-		}
-	}
-
-	if len(filtered) > limit {
-		filtered = filtered[:limit]
 	}
 
 	return filtered, nil
