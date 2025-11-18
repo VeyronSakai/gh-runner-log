@@ -55,6 +55,11 @@ func (r *RunnerLogger) FetchRunnerJobHistory(ctx context.Context, runnerName str
 		return jobs[i].StartedAt.After(*jobs[j].StartedAt)
 	})
 
+	// Apply limit after sorting
+	if len(jobs) > limit {
+		jobs = jobs[:limit]
+	}
+
 	return &RunnerJobHistory{
 		Runner: runner,
 		Jobs:   jobs,

@@ -20,6 +20,7 @@ type workflowRun struct {
 	HeadBranch   string    `json:"head_branch"`
 	HeadSha      string    `json:"head_sha"`
 	RunNumber    int       `json:"run_number"`
+	RunAttempt   int       `json:"run_attempt"`
 	Event        string    `json:"event"`
 	DisplayTitle string    `json:"display_title"`
 	HtmlUrl      string    `json:"html_url"`
@@ -42,6 +43,7 @@ type jobsResponse struct {
 type job struct {
 	ID          int64      `json:"id"`
 	RunID       int64      `json:"run_id"`
+	RunAttempt  int        `json:"run_attempt"`
 	Name        string     `json:"name"`
 	Status      string     `json:"status"`
 	Conclusion  string     `json:"conclusion"`

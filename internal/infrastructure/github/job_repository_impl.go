@@ -87,22 +87,18 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64,
 			}
 		}
 
-		// If we have enough jobs, stop fetching
-		if len(allJobs) >= limit {
-			break
-		}
-
 		// If we got less than requested, we've reached the end
 		if len(runs.WorkflowRuns) < perPage {
 			break
 		}
 
-		page++
-	}
+		// Stop after fetching a reasonable number of workflow runs to avoid excessive API calls
+		// The usecase layer will sort and apply the limit
+		if page >= 10 {
+			break
+		}
 
-	// Apply limit after collecting all jobs
-	if len(allJobs) > limit {
-		allJobs = allJobs[:limit]
+		page++
 	}
 
 	return allJobs, nil
@@ -170,6 +166,7 @@ func (j *JobRepositoryImpl) getJobsForRun(run workflowRun) ([]*entity.Job, error
 		jobs = append(jobs, &entity.Job{
 			ID:           j.ID,
 			RunID:        j.RunID,
+			RunAttempt:   j.RunAttempt,
 			Name:         j.Name,
 			Status:       j.Status,
 			Conclusion:   j.Conclusion,

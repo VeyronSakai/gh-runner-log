@@ -13,6 +13,7 @@ const (
 type Job struct {
 	ID           int64
 	RunID        int64
+	RunAttempt   int
 	Name         string
 	Status       string
 	Conclusion   string
