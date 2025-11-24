@@ -226,16 +226,16 @@ func TestParseSince_DurationRelativeToNow(t *testing.T) {
 	before := time.Now()
 	result, err := parseSince("1h")
 	after := time.Now()
-	
+
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	
+
 	// Result should be approximately 1 hour before now
 	// Account for test execution time by checking a range
 	expectedMin := before.Add(-1*time.Hour - 1*time.Second)
 	expectedMax := after.Add(-1 * time.Hour + 1*time.Second)
-	
+
 	if result.Before(expectedMin) || result.After(expectedMax) {
 		t.Errorf("parseSince('1h') = %v, expected between %v and %v", result, expectedMin, expectedMax)
 	}

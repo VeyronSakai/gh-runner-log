@@ -17,7 +17,7 @@ func TestJobRepositoryImpl_FetchJobHistory_TimeFiltering(t *testing.T) {
 	oneWeekAgo := now.Add(-7 * 24 * time.Hour)
 
 	runnerID := int64(123)
-	
+
 	jobs := []*entity.Job{
 		{ID: 1, RunnerID: &runnerID, StartedAt: &now},           // Most recent
 		{ID: 2, RunnerID: &runnerID, StartedAt: &oneHourAgo},    // 1 hour ago
@@ -98,7 +98,7 @@ func TestJobRepositoryImpl_FetchJobHistory_TimeFiltering(t *testing.T) {
 func TestJobRepositoryImpl_FetchJobHistory_ScopeFiltering(t *testing.T) {
 	runnerID := int64(123)
 	startTime := time.Date(2025, 11, 20, 12, 0, 0, 0, time.UTC)
-	
+
 	jobs := []*entity.Job{
 		{ID: 1, RunnerID: &runnerID, Repository: "acme-corp/frontend-app", StartedAt: &startTime},
 		{ID: 2, RunnerID: &runnerID, Repository: "acme-corp/backend-app", StartedAt: &startTime},
@@ -172,7 +172,7 @@ func TestJobRepositoryImpl_FetchJobHistory_RunnerFiltering(t *testing.T) {
 	runner1 := int64(123)
 	runner2 := int64(456)
 	startTime := time.Date(2025, 11, 20, 12, 0, 0, 0, time.UTC)
-	
+
 	jobs := []*entity.Job{
 		{ID: 1, RunnerID: &runner1, StartedAt: &startTime},
 		{ID: 2, RunnerID: &runner2, StartedAt: &startTime},
@@ -238,10 +238,10 @@ func TestJobRepositoryImpl_FetchJobHistory_CombinedFilters(t *testing.T) {
 	now := time.Date(2025, 11, 20, 12, 0, 0, 0, time.UTC)
 	oneDayAgo := now.Add(-24 * time.Hour)
 	twoDaysAgo := now.Add(-48 * time.Hour)
-	
+
 	runner1 := int64(123)
 	runner2 := int64(456)
-	
+
 	jobs := []*entity.Job{
 		{ID: 1, RunnerID: &runner1, Repository: "acme-corp/app1", StartedAt: &now},
 		{ID: 2, RunnerID: &runner1, Repository: "acme-corp/app2", StartedAt: &oneDayAgo},
@@ -283,9 +283,9 @@ func TestJobRepositoryImpl_FetchJobHistory_NilStartedAt(t *testing.T) {
 	// Test that jobs with nil StartedAt are handled correctly with time filter
 	now := time.Date(2025, 11, 20, 12, 0, 0, 0, time.UTC)
 	oneDayAgo := now.Add(-24 * time.Hour)
-	
+
 	runnerID := int64(123)
-	
+
 	jobs := []*entity.Job{
 		{ID: 1, RunnerID: &runnerID, StartedAt: &now},
 		{ID: 2, RunnerID: &runnerID, StartedAt: nil}, // No start time
@@ -318,7 +318,7 @@ func TestJobRepositoryImpl_FetchJobHistory_NilStartedAt(t *testing.T) {
 func TestJobRepositoryImpl_FetchJobHistory_ZeroLimit(t *testing.T) {
 	runnerID := int64(123)
 	startTime := time.Date(2025, 11, 20, 12, 0, 0, 0, time.UTC)
-	
+
 	jobs := []*entity.Job{
 		{ID: 1, RunnerID: &runnerID, StartedAt: &startTime},
 	}
