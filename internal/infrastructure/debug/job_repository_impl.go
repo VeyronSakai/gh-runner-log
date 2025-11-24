@@ -3,6 +3,7 @@ package debug
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/VeyronSakai/gh-runner-log/internal/domain/entity"
 	domainrepo "github.com/VeyronSakai/gh-runner-log/internal/domain/repository"
@@ -12,14 +13,16 @@ var _ domainrepo.JobRepository = (*JobRepositoryImpl)(nil)
 
 // JobRepositoryImpl serves job data from the loaded dataset.
 type JobRepositoryImpl struct {
-	ds    *dataset
-	scope string
+	ds           *dataset
+	scope        string
+	createdAfter time.Time
 }
 
-func NewJobRepository(ds *dataset, scope string) domainrepo.JobRepository {
+func NewJobRepository(ds *dataset, scope string, createdAfter time.Time) domainrepo.JobRepository {
 	return &JobRepositoryImpl{
-		ds:    ds,
-		scope: scope,
+		ds:           ds,
+		scope:        scope,
+		createdAfter: createdAfter,
 	}
 }
 
@@ -36,6 +39,11 @@ func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, runnerID int64, l
 
 		// Filter by runner ID if specified
 		if runnerID > 0 && !job.IsAssignedToRunner(runnerID) {
+			continue
+		}
+
+		// Filter by created time if specified
+		if !j.createdAfter.IsZero() && job.StartedAt != nil && job.StartedAt.Before(j.createdAfter) {
 			continue
 		}
 

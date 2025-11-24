@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
+	"time"
 
 	"github.com/VeyronSakai/gh-runner-log/internal/domain/entity"
 	domainrepo "github.com/VeyronSakai/gh-runner-log/internal/domain/repository"
@@ -14,20 +16,22 @@ import (
 
 // JobRepositoryImpl implements the JobRepository interface using GitHub API
 type JobRepositoryImpl struct {
-	restClient *api.RESTClient
-	basePath   string
+	restClient   *api.RESTClient
+	basePath     string
+	createdAfter time.Time
 }
 
 // NewJobRepository creates a new instance of JobRepositoryImpl
-func NewJobRepository(basePath string) (domainrepo.JobRepository, error) {
+func NewJobRepository(basePath string, createdAfter time.Time) (domainrepo.JobRepository, error) {
 	restClient, err := api.DefaultRESTClient()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create REST client: %w\nPlease run 'gh auth login' to authenticate with GitHub", err)
 	}
 
 	return &JobRepositoryImpl{
-		restClient: restClient,
-		basePath:   basePath,
+		restClient:   restClient,
+		basePath:     basePath,
+		createdAfter: createdAfter,
 	}, nil
 }
 
@@ -118,6 +122,14 @@ func (j *JobRepositoryImpl) fetchWorkflowRuns(path string, perPage, page int) (*
 	}
 
 	currentPath := fmt.Sprintf("%s%sper_page=%d&page=%d", path, separator, perPage, page)
+	
+	// Add created filter if specified
+	if !j.createdAfter.IsZero() {
+		// GitHub API expects ISO 8601 format: >=YYYY-MM-DDTHH:MM:SSZ
+		createdFilter := url.QueryEscape(">=" + j.createdAfter.UTC().Format(time.RFC3339))
+		currentPath = fmt.Sprintf("%s&created=%s", currentPath, createdFilter)
+	}
+	
 	response, err := j.restClient.Request(http.MethodGet, currentPath, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to request workflow runs: %w", err)
