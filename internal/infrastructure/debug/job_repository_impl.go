@@ -46,8 +46,11 @@ func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, runnerID int64, l
 		// Note: In production, GitHub API filters by workflow run created_at time.
 		// In debug mode, we use job started_at as a proxy since debug data doesn't
 		// include workflow run metadata. This is acceptable for testing purposes.
-		if !j.createdAfter.IsZero() && job.StartedAt != nil && job.StartedAt.Before(j.createdAfter) {
-			continue
+		if !j.createdAfter.IsZero() {
+			// Skip jobs without start time when time filter is active
+			if job.StartedAt == nil || job.StartedAt.Before(j.createdAfter) {
+				continue
+			}
 		}
 
 		filtered = append(filtered, job)
