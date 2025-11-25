@@ -56,8 +56,9 @@ func TestFetchRunnerJobHistory_PrunesByLimit(t *testing.T) {
 	if len(history.Jobs) != 5 {
 		t.Fatalf("expected limit 5, got %d", len(history.Jobs))
 	}
-	if history.Jobs[0].ID != 4 {
-		t.Fatalf("expected newest job id 4, got %d", history.Jobs[0].ID)
+	// Jobs are sorted by start time descending, so job 19 (latest) should be first
+	if history.Jobs[0].ID != 19 {
+		t.Fatalf("expected newest job id 19, got %d", history.Jobs[0].ID)
 	}
 }
 

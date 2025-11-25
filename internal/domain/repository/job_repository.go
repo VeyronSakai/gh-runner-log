@@ -10,5 +10,5 @@ import (
 type JobRepository interface {
 	// FetchJobHistory retrieves job history for a repository or organization
 	// If runnerID is provided (> 0), only jobs assigned to that runner are returned
-	FetchJobHistory(ctx context.Context, runnerID int64, limit int) ([]*entity.Job, error)
+	FetchJobHistory(ctx context.Context, runnerID int64) ([]*entity.Job, error)
 }
