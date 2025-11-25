@@ -2,9 +2,7 @@ package github
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 
 	"github.com/VeyronSakai/gh-runner-log/internal/domain/entity"
 	domainrepo "github.com/VeyronSakai/gh-runner-log/internal/domain/repository"
@@ -34,29 +32,23 @@ func NewRunnerRepository(basePath string) (domainrepo.RunnerRepository, error) {
 func (r *RunnerRepositoryImpl) FetchRunnerByName(ctx context.Context, name string) (*entity.Runner, error) {
 	path := r.getRunnersPath()
 
-	response, err := r.restClient.Request(http.MethodGet, path, nil)
-	if err != nil {
+	var runnersResp runnersResponse
+	if err := r.restClient.Get(path, &runnersResp); err != nil {
 		return nil, fmt.Errorf("failed to fetch runners: %w", err)
 	}
-	defer response.Body.Close()
 
-	var runnersResp runnersResponse
-	if err := json.NewDecoder(response.Body).Decode(&runnersResp); err != nil {
-		return nil, fmt.Errorf("failed to decode runners response: %w", err)
-	}
-
-	for _, r := range runnersResp.Runners {
-		if r.Name == name {
-			labels := make([]string, 0, len(r.Labels))
-			for _, l := range r.Labels {
+	for _, runner := range runnersResp.Runners {
+		if runner.Name == name {
+			labels := make([]string, 0, len(runner.Labels))
+			for _, l := range runner.Labels {
 				labels = append(labels, l.Name)
 			}
 
 			return &entity.Runner{
-				ID:     r.ID,
-				Name:   r.Name,
-				OS:     r.OS,
-				Status: r.Status,
+				ID:     runner.ID,
+				Name:   runner.Name,
+				OS:     runner.OS,
+				Status: runner.Status,
 				Labels: labels,
 			}, nil
 		}
