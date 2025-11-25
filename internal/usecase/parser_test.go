@@ -1,4 +1,4 @@
-package cmd
+package usecase
 
 import (
 	"testing"
@@ -112,7 +112,7 @@ func TestParseSince(t *testing.T) {
 			expectError: false,
 			validate: func(t *testing.T, result time.Time) {
 				// Result should be approximately 24 hours ago from now
-				// We can't check exact time since parseSince uses time.Now()
+				// We can't check exact time since ParseSince uses time.Now()
 				// Just verify it's not zero
 				if result.IsZero() {
 					t.Error("expected non-zero time for empty string")
@@ -204,14 +204,14 @@ func TestParseSince(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := parseSince(tt.input)
+			got, err := ParseSince(tt.input)
 			if tt.expectError {
 				if err == nil {
-					t.Errorf("parseSince(%q) expected error, got nil", tt.input)
+					t.Errorf("ParseSince(%q) expected error, got nil", tt.input)
 				}
 			} else {
 				if err != nil {
-					t.Errorf("parseSince(%q) unexpected error: %v", tt.input, err)
+					t.Errorf("ParseSince(%q) unexpected error: %v", tt.input, err)
 				}
 				if tt.validate != nil {
 					tt.validate(t, got)
@@ -224,7 +224,7 @@ func TestParseSince(t *testing.T) {
 func TestParseSince_DurationRelativeToNow(t *testing.T) {
 	// Test that duration-based parsing is relative to current time
 	before := time.Now()
-	result, err := parseSince("1h")
+	result, err := ParseSince("1h")
 	after := time.Now()
 
 	if err != nil {
@@ -234,9 +234,9 @@ func TestParseSince_DurationRelativeToNow(t *testing.T) {
 	// Result should be approximately 1 hour before now
 	// Account for test execution time by checking a range
 	expectedMin := before.Add(-1*time.Hour - 1*time.Second)
-	expectedMax := after.Add(-1 * time.Hour + 1*time.Second)
+	expectedMax := after.Add(-1*time.Hour + 1*time.Second)
 
 	if result.Before(expectedMin) || result.After(expectedMax) {
-		t.Errorf("parseSince('1h') = %v, expected between %v and %v", result, expectedMin, expectedMax)
+		t.Errorf("ParseSince('1h') = %v, expected between %v and %v", result, expectedMin, expectedMax)
 	}
 }
