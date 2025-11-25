@@ -40,12 +40,31 @@ gh runner-log my-runner-name --org organization-name
 gh runner-log my-runner-name --max-count 10
 ```
 
+### Filter jobs by time range
+```bash
+# Show jobs from the last 24 hours (default)
+gh runner-log my-runner-name
+
+# Show jobs from the last 7 days
+gh runner-log my-runner-name --since 7d
+
+# Show jobs from the last 2 weeks
+gh runner-log my-runner-name --since 2w
+
+# Show jobs since a specific date
+gh runner-log my-runner-name --since 2025-11-01
+```
+
 ## Command Line Flags
 
 - `<runner-name>` - Name of the self-hosted runner (required, positional argument)
 - `--repo` - Fetch runner logs for a specific repository (format: owner/repo)
 - `--org` - Fetch runner logs for an organization
 - `-n, --max-count` - Maximum number of jobs to display (default: 5)
+- `--since` - Show jobs created since this time (default: 24h)
+  - Duration format: `24h`, `2d`, `1w` (hours, days, weeks)
+  - Date format: `2025-11-17` (YYYY-MM-DD)
+  - RFC3339 format: `2025-11-17T10:00:00Z`
 - `--debug` - Load runner/job data from a local JSON file to simulate GitHub API responses
 
 ## Interactive UI
@@ -144,6 +163,7 @@ Create a JSON file containing runners and jobs to validate CLI output without ca
     {
       "id": 98765,
       "run_id": 54321,
+      "run_attempt": 1,
       "name": "Build",
       "status": "completed",
       "conclusion": "success",

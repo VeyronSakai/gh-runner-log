@@ -60,6 +60,7 @@ func buildRows(jobs []*entity.Job) []table.Row {
 		rows[i] = table.Row{
 			job.WorkflowName,
 			job.Name,
+			fmt.Sprintf("%d", job.RunAttempt),
 			job.Status,
 			conclusion,
 			startedAt,

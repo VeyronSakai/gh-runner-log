@@ -19,6 +19,7 @@
     {
       "id": 1,
       "run_id": 1001,
+      "run_attempt": 1,
       "name": "build",
       "status": "completed",
       "conclusion": "success",
@@ -33,6 +34,7 @@
     {
       "id": 2,
       "run_id": 1002,
+      "run_attempt": 1,
       "name": "deploy",
       "status": "in_progress",
       "conclusion": "",
@@ -47,6 +49,7 @@
     {
       "id": 3,
       "run_id": 1003,
+      "run_attempt": 1,
       "name": "lint",
       "status": "completed",
       "conclusion": "success",

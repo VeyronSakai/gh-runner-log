@@ -39,7 +39,7 @@ func (r *RunnerLogger) FetchRunnerJobHistory(ctx context.Context, runnerName str
 
 	// Fetch job history filtered by runner ID
 	// The repository will paginate and filter until it gets enough jobs for this runner
-	jobs, err := r.jobRepo.FetchJobHistory(ctx, runner.ID, limit)
+	jobs, err := r.jobRepo.FetchJobHistory(ctx, runner.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch job history: %w", err)
 	}
@@ -54,6 +54,11 @@ func (r *RunnerLogger) FetchRunnerJobHistory(ctx context.Context, runnerName str
 		}
 		return jobs[i].StartedAt.After(*jobs[j].StartedAt)
 	})
+
+	// Apply limit after sorting
+	if len(jobs) > limit {
+		jobs = jobs[:limit]
+	}
 
 	return &RunnerJobHistory{
 		Runner: runner,

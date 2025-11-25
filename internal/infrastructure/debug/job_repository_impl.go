@@ -3,6 +3,7 @@ package debug
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/VeyronSakai/gh-runner-log/internal/domain/entity"
 	domainrepo "github.com/VeyronSakai/gh-runner-log/internal/domain/repository"
@@ -12,22 +13,20 @@ var _ domainrepo.JobRepository = (*JobRepositoryImpl)(nil)
 
 // JobRepositoryImpl serves job data from the loaded dataset.
 type JobRepositoryImpl struct {
-	ds    *dataset
-	scope string
+	ds           *dataset
+	scope        string
+	createdAfter time.Time
 }
 
-func NewJobRepository(ds *dataset, scope string) domainrepo.JobRepository {
+func NewJobRepository(ds *dataset, scope string, createdAfter time.Time) domainrepo.JobRepository {
 	return &JobRepositoryImpl{
-		ds:    ds,
-		scope: scope,
+		ds:           ds,
+		scope:        scope,
+		createdAfter: createdAfter,
 	}
 }
 
-func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, runnerID int64, limit int) ([]*entity.Job, error) {
-	if limit <= 0 {
-		return []*entity.Job{}, nil
-	}
-
+func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, runnerID int64) ([]*entity.Job, error) {
 	filtered := make([]*entity.Job, 0, len(j.ds.jobs))
 	for _, job := range j.ds.jobs {
 		if !j.matchScope(job.Repository) {
@@ -39,14 +38,18 @@ func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, runnerID int64, l
 			continue
 		}
 
-		filtered = append(filtered, job)
-		if len(filtered) >= limit {
-			break
+		// Filter by created time if specified
+		// Note: In production, GitHub API filters by workflow run created_at time.
+		// In debug mode, we use job started_at as a proxy since debug data doesn't
+		// include workflow run metadata. This is acceptable for testing purposes.
+		if !j.createdAfter.IsZero() {
+			// Skip jobs without start time when time filter is active
+			if job.StartedAt == nil || job.StartedAt.Before(j.createdAfter) {
+				continue
+			}
 		}
-	}
 
-	if len(filtered) > limit {
-		filtered = filtered[:limit]
+		filtered = append(filtered, job)
 	}
 
 	return filtered, nil

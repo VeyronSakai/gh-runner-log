@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
+	"time"
 
 	"github.com/VeyronSakai/gh-runner-log/internal/domain/repository"
 	debuginfra "github.com/VeyronSakai/gh-runner-log/internal/infrastructure/debug"
@@ -20,6 +20,7 @@ var (
 	repo      string
 	maxCount  int
 	debugFile string
+	since     string
 )
 
 var rootCmd = &cobra.Command{
@@ -44,6 +45,7 @@ func init() {
 	rootCmd.Flags().StringVar(&repo, "repo", "", "Fetch runner logs for a specific repository (owner/repo)")
 	rootCmd.Flags().IntVarP(&maxCount, "max-count", "n", 5, "Maximum number of jobs to display")
 	rootCmd.Flags().StringVar(&debugFile, "debug", "", "Path to debug JSON file (bypasses GitHub API)")
+	rootCmd.Flags().StringVar(&since, "since", "24h", "Show jobs created since this time (e.g., '24h', '2d', '1w', or RFC3339 format)")
 }
 
 func runCommand(_ *cobra.Command, args []string) error {
@@ -55,7 +57,13 @@ func runCommand(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	jobRepo, runnerRepo, err := resolveRepositories(debugFile, owner, repoName, orgName)
+	// Parse since parameter
+	createdAfter, err := usecase.ParseSince(since)
+	if err != nil {
+		return fmt.Errorf("invalid --since value: %w", err)
+	}
+
+	jobRepo, runnerRepo, err := resolveRepositories(debugFile, owner, repoName, orgName, createdAfter)
 	if err != nil {
 		return err
 	}
@@ -68,9 +76,9 @@ func runCommand(_ *cobra.Command, args []string) error {
 	return controller.Run(ctx, runnerName, maxCount)
 }
 
-func resolveRepositories(debugPath, owner, repo, org string) (repository.JobRepository, repository.RunnerRepository, error) {
+func resolveRepositories(debugPath, owner, repo, org string, createdAfter time.Time) (repository.JobRepository, repository.RunnerRepository, error) {
 	if debugPath != "" {
-		jobRepo, runnerRepo, err := debuginfra.LoadRepositories(debugPath, owner, repo, org)
+		jobRepo, runnerRepo, err := debuginfra.LoadRepositories(debugPath, owner, repo, org, createdAfter)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to load debug data: %w", err)
 		}
@@ -84,7 +92,7 @@ func resolveRepositories(debugPath, owner, repo, org string) (repository.JobRepo
 		return nil, nil, fmt.Errorf("failed to create GitHub client: %w", err)
 	}
 
-	jobRepo, err := github.NewJobRepository(basePath)
+	jobRepo, err := github.NewJobRepository(basePath, createdAfter)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create GitHub job client: %w", err)
 	}
@@ -101,11 +109,11 @@ func determineScope(debugEnabled bool, orgFlag, repoFlag string) (string, string
 	}
 
 	if repoFlag != "" {
-		parts := strings.Split(repoFlag, "/")
-		if len(parts) != 2 {
+		parsed, err := ghrepo.Parse(repoFlag)
+		if err != nil {
 			return "", "", "", fmt.Errorf("invalid repository format. Use owner/repo")
 		}
-		return parts[0], parts[1], "", nil
+		return parsed.Owner, parsed.Name, "", nil
 	}
 
 	if debugEnabled {

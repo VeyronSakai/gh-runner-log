@@ -3,35 +3,59 @@
     {
       "id": 1001,
       "name": "ubuntu-runner-01",
-      "labels": ["self-hosted", "linux", "x64", "ubuntu-22.04"],
+      "labels": [
+        "self-hosted",
+        "linux",
+        "x64",
+        "ubuntu-22.04"
+      ],
       "os": "linux",
       "status": "online"
     },
     {
       "id": 1002,
       "name": "ubuntu-runner-02",
-      "labels": ["self-hosted", "linux", "x64", "ubuntu-22.04", "gpu"],
+      "labels": [
+        "self-hosted",
+        "linux",
+        "x64",
+        "ubuntu-22.04",
+        "gpu"
+      ],
       "os": "linux",
       "status": "online"
     },
     {
       "id": 1003,
       "name": "macos-runner-01",
-      "labels": ["self-hosted", "macOS", "arm64"],
+      "labels": [
+        "self-hosted",
+        "macOS",
+        "arm64"
+      ],
       "os": "macOS",
       "status": "online"
     },
     {
       "id": 1004,
       "name": "windows-runner-01",
-      "labels": ["self-hosted", "windows", "x64"],
+      "labels": [
+        "self-hosted",
+        "windows",
+        "x64"
+      ],
       "os": "windows",
       "status": "idle"
     },
     {
       "id": 1005,
       "name": "ubuntu-runner-03",
-      "labels": ["self-hosted", "linux", "x64", "ubuntu-22.04"],
+      "labels": [
+        "self-hosted",
+        "linux",
+        "x64",
+        "ubuntu-22.04"
+      ],
       "os": "linux",
       "status": "offline"
     }
@@ -49,7 +73,8 @@
       "completed_at": "2025-11-17T10:15:30Z",
       "workflow_name": "CI - Frontend",
       "repository": "acme-corp/frontend-app",
-      "html_url": "https://github.com/acme-corp/frontend-app/actions/runs/50001/job/10001"
+      "html_url": "https://github.com/acme-corp/frontend-app/actions/runs/50001/job/10001",
+      "run_attempt": 1
     },
     {
       "id": 10002,
@@ -63,7 +88,8 @@
       "completed_at": "2025-11-17T10:22:10Z",
       "workflow_name": "CI - Frontend",
       "repository": "acme-corp/frontend-app",
-      "html_url": "https://github.com/acme-corp/frontend-app/actions/runs/50001/job/10002"
+      "html_url": "https://github.com/acme-corp/frontend-app/actions/runs/50001/job/10002",
+      "run_attempt": 1
     },
     {
       "id": 10003,
@@ -77,7 +103,8 @@
       "completed_at": "2025-11-17T10:45:20Z",
       "workflow_name": "CI - Frontend",
       "repository": "acme-corp/frontend-app",
-      "html_url": "https://github.com/acme-corp/frontend-app/actions/runs/50001/job/10003"
+      "html_url": "https://github.com/acme-corp/frontend-app/actions/runs/50001/job/10003",
+      "run_attempt": 1
     },
     {
       "id": 10004,
@@ -91,7 +118,8 @@
       "completed_at": "2025-11-17T10:12:45Z",
       "workflow_name": "CI - Backend",
       "repository": "acme-corp/backend-api",
-      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50002/job/10004"
+      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50002/job/10004",
+      "run_attempt": 1
     },
     {
       "id": 10005,
@@ -105,7 +133,8 @@
       "completed_at": "2025-11-17T10:25:30Z",
       "workflow_name": "CI - Backend",
       "repository": "acme-corp/backend-api",
-      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50002/job/10005"
+      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50002/job/10005",
+      "run_attempt": 1
     },
     {
       "id": 10006,
@@ -119,7 +148,8 @@
       "completed_at": "2025-11-17T10:55:22Z",
       "workflow_name": "CI - Backend",
       "repository": "acme-corp/backend-api",
-      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50002/job/10006"
+      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50002/job/10006",
+      "run_attempt": 1
     },
     {
       "id": 10007,
@@ -133,7 +163,8 @@
       "completed_at": "2025-11-17T12:30:45Z",
       "workflow_name": "ML Pipeline - Training",
       "repository": "acme-corp/ml-models",
-      "html_url": "https://github.com/acme-corp/ml-models/actions/runs/50003/job/10007"
+      "html_url": "https://github.com/acme-corp/ml-models/actions/runs/50003/job/10007",
+      "run_attempt": 1
     },
     {
       "id": 10008,
@@ -147,7 +178,8 @@
       "completed_at": "2025-11-17T12:45:15Z",
       "workflow_name": "ML Pipeline - Training",
       "repository": "acme-corp/ml-models",
-      "html_url": "https://github.com/acme-corp/ml-models/actions/runs/50003/job/10008"
+      "html_url": "https://github.com/acme-corp/ml-models/actions/runs/50003/job/10008",
+      "run_attempt": 1
     },
     {
       "id": 10009,
@@ -161,7 +193,8 @@
       "completed_at": "2025-11-17T11:25:40Z",
       "workflow_name": "Mobile CI - iOS",
       "repository": "acme-corp/mobile-app",
-      "html_url": "https://github.com/acme-corp/mobile-app/actions/runs/50004/job/10009"
+      "html_url": "https://github.com/acme-corp/mobile-app/actions/runs/50004/job/10009",
+      "run_attempt": 1
     },
     {
       "id": 10010,
@@ -175,7 +208,8 @@
       "completed_at": "2025-11-17T11:38:20Z",
       "workflow_name": "Mobile CI - iOS",
       "repository": "acme-corp/mobile-app",
-      "html_url": "https://github.com/acme-corp/mobile-app/actions/runs/50004/job/10010"
+      "html_url": "https://github.com/acme-corp/mobile-app/actions/runs/50004/job/10010",
+      "run_attempt": 1
     },
     {
       "id": 10011,
@@ -189,7 +223,8 @@
       "completed_at": null,
       "workflow_name": "Mobile CI - iOS",
       "repository": "acme-corp/mobile-app",
-      "html_url": "https://github.com/acme-corp/mobile-app/actions/runs/50004/job/10011"
+      "html_url": "https://github.com/acme-corp/mobile-app/actions/runs/50004/job/10011",
+      "run_attempt": 1
     },
     {
       "id": 10012,
@@ -203,7 +238,8 @@
       "completed_at": "2025-11-17T09:55:30Z",
       "workflow_name": "Desktop CI - Windows",
       "repository": "acme-corp/desktop-app",
-      "html_url": "https://github.com/acme-corp/desktop-app/actions/runs/50005/job/10012"
+      "html_url": "https://github.com/acme-corp/desktop-app/actions/runs/50005/job/10012",
+      "run_attempt": 1
     },
     {
       "id": 10013,
@@ -217,7 +253,8 @@
       "completed_at": "2025-11-17T10:08:45Z",
       "workflow_name": "Desktop CI - Windows",
       "repository": "acme-corp/desktop-app",
-      "html_url": "https://github.com/acme-corp/desktop-app/actions/runs/50005/job/10013"
+      "html_url": "https://github.com/acme-corp/desktop-app/actions/runs/50005/job/10013",
+      "run_attempt": 1
     },
     {
       "id": 10014,
@@ -231,7 +268,8 @@
       "completed_at": "2025-11-17T08:18:25Z",
       "workflow_name": "Security Scan",
       "repository": "acme-corp/frontend-app",
-      "html_url": "https://github.com/acme-corp/frontend-app/actions/runs/50006/job/10014"
+      "html_url": "https://github.com/acme-corp/frontend-app/actions/runs/50006/job/10014",
+      "run_attempt": 1
     },
     {
       "id": 10015,
@@ -245,7 +283,8 @@
       "completed_at": "2025-11-17T07:05:15Z",
       "workflow_name": "Dependency Update",
       "repository": "acme-corp/backend-api",
-      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50007/job/10015"
+      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50007/job/10015",
+      "run_attempt": 1
     },
     {
       "id": 10016,
@@ -259,7 +298,8 @@
       "completed_at": "2025-11-17T13:12:30Z",
       "workflow_name": "Deploy to Staging",
       "repository": "acme-corp/backend-api",
-      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50008/job/10016"
+      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50008/job/10016",
+      "run_attempt": 1
     },
     {
       "id": 10017,
@@ -273,7 +313,8 @@
       "completed_at": "2025-11-17T13:18:50Z",
       "workflow_name": "Deploy to Staging",
       "repository": "acme-corp/backend-api",
-      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50008/job/10017"
+      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50008/job/10017",
+      "run_attempt": 1
     },
     {
       "id": 10018,
@@ -287,7 +328,8 @@
       "completed_at": null,
       "workflow_name": "Container Build",
       "repository": "acme-corp/microservice-a",
-      "html_url": "https://github.com/acme-corp/microservice-a/actions/runs/50009/job/10018"
+      "html_url": "https://github.com/acme-corp/microservice-a/actions/runs/50009/job/10018",
+      "run_attempt": 1
     },
     {
       "id": 10019,
@@ -301,7 +343,8 @@
       "completed_at": "2025-11-17T14:35:45Z",
       "workflow_name": "Performance Testing",
       "repository": "acme-corp/backend-api",
-      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50010/job/10019"
+      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50010/job/10019",
+      "run_attempt": 1
     },
     {
       "id": 10020,
@@ -315,7 +358,53 @@
       "completed_at": "2025-11-17T10:02:30Z",
       "workflow_name": "Code Quality",
       "repository": "acme-corp/frontend-app",
-      "html_url": "https://github.com/acme-corp/frontend-app/actions/runs/50011/job/10020"
+      "html_url": "https://github.com/acme-corp/frontend-app/actions/runs/50011/job/10020",
+      "run_attempt": 1
+    },
+    {
+      "id": 10021,
+      "run_id": 50001,
+      "name": "test-frontend-e2e",
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1001,
+      "runner_name": "ubuntu-runner-01",
+      "started_at": "2025-11-17T11:00:00Z",
+      "completed_at": "2025-11-17T11:18:35Z",
+      "workflow_name": "CI - Frontend",
+      "repository": "acme-corp/frontend-app",
+      "html_url": "https://github.com/acme-corp/frontend-app/actions/runs/50001/job/10021",
+      "run_attempt": 2
+    },
+    {
+      "id": 10022,
+      "run_id": 50001,
+      "name": "test-frontend-e2e",
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1001,
+      "runner_name": "ubuntu-runner-01",
+      "started_at": "2025-11-17T11:25:00Z",
+      "completed_at": "2025-11-17T11:42:10Z",
+      "workflow_name": "CI - Frontend",
+      "repository": "acme-corp/frontend-app",
+      "html_url": "https://github.com/acme-corp/frontend-app/actions/runs/50001/job/10022",
+      "run_attempt": 3
+    },
+    {
+      "id": 10023,
+      "run_id": 50010,
+      "name": "performance-test",
+      "status": "completed",
+      "conclusion": "success",
+      "runner_id": 1002,
+      "runner_name": "ubuntu-runner-02",
+      "started_at": "2025-11-17T15:00:00Z",
+      "completed_at": "2025-11-17T15:28:20Z",
+      "workflow_name": "Performance Testing",
+      "repository": "acme-corp/backend-api",
+      "html_url": "https://github.com/acme-corp/backend-api/actions/runs/50010/job/10023",
+      "run_attempt": 2
     }
   ]
 }

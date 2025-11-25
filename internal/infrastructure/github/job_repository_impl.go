@@ -2,10 +2,10 @@ package github
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
+	"net/url"
 	"strings"
+	"time"
 
 	"github.com/VeyronSakai/gh-runner-log/internal/domain/entity"
 	domainrepo "github.com/VeyronSakai/gh-runner-log/internal/domain/repository"
@@ -14,26 +14,28 @@ import (
 
 // JobRepositoryImpl implements the JobRepository interface using GitHub API
 type JobRepositoryImpl struct {
-	restClient *api.RESTClient
-	basePath   string
+	restClient   *api.RESTClient
+	basePath     string
+	createdAfter time.Time
 }
 
 // NewJobRepository creates a new instance of JobRepositoryImpl
-func NewJobRepository(basePath string) (domainrepo.JobRepository, error) {
+func NewJobRepository(basePath string, createdAfter time.Time) (domainrepo.JobRepository, error) {
 	restClient, err := api.DefaultRESTClient()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create REST client: %w\nPlease run 'gh auth login' to authenticate with GitHub", err)
 	}
 
 	return &JobRepositoryImpl{
-		restClient: restClient,
-		basePath:   basePath,
+		restClient:   restClient,
+		basePath:     basePath,
+		createdAfter: createdAfter,
 	}, nil
 }
 
 // FetchJobHistory retrieves job history for a repository or organization
 // If runnerID is provided (> 0), only jobs assigned to that runner are returned
-func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64, limit int) ([]*entity.Job, error) {
+func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64) ([]*entity.Job, error) {
 	var allJobs []*entity.Job
 
 	path := j.getWorkflowRunsPath()
@@ -87,22 +89,12 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64,
 			}
 		}
 
-		// If we have enough jobs, stop fetching
-		if len(allJobs) >= limit {
-			break
-		}
-
 		// If we got less than requested, we've reached the end
 		if len(runs.WorkflowRuns) < perPage {
 			break
 		}
 
 		page++
-	}
-
-	// Apply limit after collecting all jobs
-	if len(allJobs) > limit {
-		allJobs = allJobs[:limit]
 	}
 
 	return allJobs, nil
@@ -122,15 +114,17 @@ func (j *JobRepositoryImpl) fetchWorkflowRuns(path string, perPage, page int) (*
 	}
 
 	currentPath := fmt.Sprintf("%s%sper_page=%d&page=%d", path, separator, perPage, page)
-	response, err := j.restClient.Request(http.MethodGet, currentPath, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to request workflow runs: %w", err)
+
+	// Add created filter if specified
+	if !j.createdAfter.IsZero() {
+		// GitHub API expects ISO 8601 format: >=YYYY-MM-DDTHH:MM:SSZ
+		createdFilter := url.QueryEscape(">=" + j.createdAfter.UTC().Format(time.RFC3339))
+		currentPath = fmt.Sprintf("%s&created=%s", currentPath, createdFilter)
 	}
-	defer response.Body.Close()
 
 	var runs workflowRunsResponse
-	if err := json.NewDecoder(response.Body).Decode(&runs); err != nil {
-		return nil, fmt.Errorf("failed to decode workflow runs response: %w", err)
+	if err := j.restClient.Get(currentPath, &runs); err != nil {
+		return nil, fmt.Errorf("failed to fetch workflow runs: %w", err)
 	}
 
 	return &runs, nil
@@ -154,15 +148,10 @@ func (j *JobRepositoryImpl) getJobsForRun(run workflowRun) ([]*entity.Job, error
 	runRepo := parts[1]
 
 	path := fmt.Sprintf("%s/runs/%d/jobs", getRepoActionsBasePath(runOwner, runRepo), run.ID)
-	response, err := j.restClient.Request(http.MethodGet, path, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch jobs for run %d: %w", run.ID, err)
-	}
-	defer response.Body.Close()
 
 	var jobsResp jobsResponse
-	if err := json.NewDecoder(response.Body).Decode(&jobsResp); err != nil {
-		return nil, fmt.Errorf("failed to decode jobs response: %w", err)
+	if err := j.restClient.Get(path, &jobsResp); err != nil {
+		return nil, fmt.Errorf("failed to fetch jobs for run %d: %w", run.ID, err)
 	}
 
 	jobs := make([]*entity.Job, 0, len(jobsResp.Jobs))
@@ -170,6 +159,7 @@ func (j *JobRepositoryImpl) getJobsForRun(run workflowRun) ([]*entity.Job, error
 		jobs = append(jobs, &entity.Job{
 			ID:           j.ID,
 			RunID:        j.RunID,
+			RunAttempt:   j.RunAttempt,
 			Name:         j.Name,
 			Status:       j.Status,
 			Conclusion:   j.Conclusion,

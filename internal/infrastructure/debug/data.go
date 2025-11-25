@@ -11,7 +11,7 @@ import (
 )
 
 // LoadRepositories loads job and runner repositories from a debug file.
-func LoadRepositories(path, owner, repo, org string) (domainrepo.JobRepository, domainrepo.RunnerRepository, error) {
+func LoadRepositories(path, owner, repo, org string, createdAfter time.Time) (domainrepo.JobRepository, domainrepo.RunnerRepository, error) {
 	ds, err := loadDataset(path)
 	if err != nil {
 		return nil, nil, err
@@ -25,7 +25,7 @@ func LoadRepositories(path, owner, repo, org string) (domainrepo.JobRepository, 
 		scope = owner + "/" + repo
 	}
 	
-	return NewJobRepository(ds, scope), NewRunnerRepository(ds, scope), nil
+	return NewJobRepository(ds, scope, createdAfter), NewRunnerRepository(ds, scope), nil
 }
 
 // dataFile mirrors the JSON schema used by the --debug flag.
@@ -45,6 +45,7 @@ type runnerRecord struct {
 type jobRecord struct {
 	ID           int64      `json:"id"`
 	RunID        int64      `json:"run_id"`
+	RunAttempt   int        `json:"run_attempt"`
 	Name         string     `json:"name"`
 	Status       string     `json:"status"`
 	Conclusion   string     `json:"conclusion"`
@@ -97,6 +98,7 @@ func loadDataset(path string) (*dataset, error) {
 		job := &entity.Job{
 			ID:           j.ID,
 			RunID:        j.RunID,
+			RunAttempt:   j.RunAttempt,
 			Name:         j.Name,
 			Status:       j.Status,
 			Conclusion:   j.Conclusion,
