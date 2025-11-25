@@ -37,7 +37,7 @@ func NewJobRepository(basePath string, createdAfter time.Time) (domainrepo.JobRe
 
 // FetchJobHistory retrieves job history for a repository or organization
 // If runnerID is provided (> 0), only jobs assigned to that runner are returned
-func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64, limit int) ([]*entity.Job, error) {
+func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64) ([]*entity.Job, error) {
 	var allJobs []*entity.Job
 
 	path := j.getWorkflowRunsPath()
@@ -93,12 +93,6 @@ func (j *JobRepositoryImpl) FetchJobHistory(ctx context.Context, runnerID int64,
 
 		// If we got less than requested, we've reached the end
 		if len(runs.WorkflowRuns) < perPage {
-			break
-		}
-
-		// Stop after fetching a reasonable number of workflow runs to avoid excessive API calls
-		// The usecase layer will sort and apply the limit
-		if page >= 10 {
 			break
 		}
 

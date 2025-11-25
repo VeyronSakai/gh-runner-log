@@ -72,7 +72,7 @@ func TestJobRepositoryImpl_FetchJobHistory_TimeFiltering(t *testing.T) {
 				createdAfter: tt.createdAfter,
 			}
 
-			result, err := repo.FetchJobHistory(context.Background(), runnerID, 100)
+			result, err := repo.FetchJobHistory(context.Background(), runnerID)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -146,7 +146,7 @@ func TestJobRepositoryImpl_FetchJobHistory_ScopeFiltering(t *testing.T) {
 				createdAfter: time.Time{}, // No time filter
 			}
 
-			result, err := repo.FetchJobHistory(context.Background(), runnerID, 100)
+			result, err := repo.FetchJobHistory(context.Background(), runnerID)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -211,7 +211,7 @@ func TestJobRepositoryImpl_FetchJobHistory_RunnerFiltering(t *testing.T) {
 				createdAfter: time.Time{},
 			}
 
-			result, err := repo.FetchJobHistory(context.Background(), tt.runnerID, 100)
+			result, err := repo.FetchJobHistory(context.Background(), tt.runnerID)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -258,7 +258,7 @@ func TestJobRepositoryImpl_FetchJobHistory_CombinedFilters(t *testing.T) {
 	}
 
 	// Should match jobs: 1, 2 (runner1, acme-corp, within 30 hours)
-	result, err := repo.FetchJobHistory(context.Background(), runner1, 100)
+	result, err := repo.FetchJobHistory(context.Background(), runner1)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -299,7 +299,7 @@ func TestJobRepositoryImpl_FetchJobHistory_NilStartedAt(t *testing.T) {
 		createdAfter: now.Add(-12 * time.Hour), // Last 12 hours
 	}
 
-	result, err := repo.FetchJobHistory(context.Background(), runnerID, 100)
+	result, err := repo.FetchJobHistory(context.Background(), runnerID)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -312,30 +312,5 @@ func TestJobRepositoryImpl_FetchJobHistory_NilStartedAt(t *testing.T) {
 
 	if len(result) > 0 && result[0].ID != expectedIDs[0] {
 		t.Errorf("expected job ID %d, got %d", expectedIDs[0], result[0].ID)
-	}
-}
-
-func TestJobRepositoryImpl_FetchJobHistory_ZeroLimit(t *testing.T) {
-	runnerID := int64(123)
-	startTime := time.Date(2025, 11, 20, 12, 0, 0, 0, time.UTC)
-
-	jobs := []*entity.Job{
-		{ID: 1, RunnerID: &runnerID, StartedAt: &startTime},
-	}
-
-	ds := &dataset{jobs: jobs}
-	repo := &JobRepositoryImpl{
-		ds:           ds,
-		scope:        "",
-		createdAfter: time.Time{},
-	}
-
-	result, err := repo.FetchJobHistory(context.Background(), runnerID, 0)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if len(result) != 0 {
-		t.Errorf("expected 0 jobs with limit 0, got %d", len(result))
 	}
 }

@@ -12,7 +12,7 @@ type StubJobRepository struct {
 	Err  error
 }
 
-func (s *StubJobRepository) FetchJobHistory(_ context.Context, runnerID int64, limit int) ([]*entity.Job, error) {
+func (s *StubJobRepository) FetchJobHistory(_ context.Context, runnerID int64) ([]*entity.Job, error) {
 	if s.Err != nil {
 		return nil, s.Err
 	}
@@ -24,9 +24,6 @@ func (s *StubJobRepository) FetchJobHistory(_ context.Context, runnerID int64, l
 			continue
 		}
 		filtered = append(filtered, job)
-		if len(filtered) >= limit {
-			break
-		}
 	}
 
 	return filtered, nil

@@ -26,11 +26,7 @@ func NewJobRepository(ds *dataset, scope string, createdAfter time.Time) domainr
 	}
 }
 
-func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, runnerID int64, limit int) ([]*entity.Job, error) {
-	if limit <= 0 {
-		return []*entity.Job{}, nil
-	}
-
+func (j *JobRepositoryImpl) FetchJobHistory(_ context.Context, runnerID int64) ([]*entity.Job, error) {
 	filtered := make([]*entity.Job, 0, len(j.ds.jobs))
 	for _, job := range j.ds.jobs {
 		if !j.matchScope(job.Repository) {
