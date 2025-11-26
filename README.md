@@ -60,7 +60,7 @@ gh runner-log my-runner-name --since 2025-11-01
 - `<runner-name>` - Name of the self-hosted runner (required, positional argument)
 - `--repo` - Fetch runner logs for a specific repository (format: owner/repo)
 - `--org` - Fetch runner logs for an organization
-- `-n, --max-count` - Maximum number of jobs to display (default: 5)
+- `-n, --max-count` - Maximum number of jobs to display (default: 20)
 - `--since` - Show jobs created since this time (default: 24h)
   - Duration format: `24h`, `2d`, `1w` (hours, days, weeks)
   - Date format: `2025-11-17` (YYYY-MM-DD)
